@@ -10,9 +10,9 @@ const branches = [
         id: "type_hot",
         name: "Горячий",
         text: "Погрузитесь в уют с нашими горячими напитками! Восхитительный аромат свежесваренного кофе и нежное тепло чая подарят вам моменты истинного наслаждения и комфорта.",
-        children: ["type_coffee", "type_tea", "type_cacao"],
-        background: "10197130_4346596.jpg",
+        children: ["type_coffee", "type_tea", "type_cacao", "type_hot_chocolate"],
         image: "img3.webp",
+        background: "10197130_4346596.jpg",
         borderColor: "#854e36",
         shadowColor: "rgb(147 106 106)"
     },
@@ -21,8 +21,8 @@ const branches = [
         name: "Холодный",
         text: "Освежитесь в жаркий день с нашими холодными напитками! От прохладных лимонадов до ледяного кофе — у нас найдется что-то для каждого, чтобы утолить жажду и поднять настроение.",
         children: ["type_ice_cream_latte", "type_milkshake"],
-        background: "15628337_5651878.jpg",
         image: "img3.webp",
+        background: "15628337_5651878.jpg",
         borderColor: "#5095a3",
         shadowColor: "#4e78a1"
     },
@@ -31,35 +31,66 @@ const branches = [
         name: "Кофе",
         children: ["coffee_cappucino", "coffee_latte_makiato"],
         text: "Погрузитесь в мир ароматного кофе, который подарит вам заряд бодрости и вдохновения. От классического эспрессо до нежного латте — у нас найдётся идеальный напиток для каждого любителя кофе.",
-        image: "img3.webp"
+        image: "img3.webp",
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(111,73,23)",
+        shadowColor: "rgb(126 84 29)"
     },
     {
         id: "type_tea",
         name: "Чай",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["tea_english_breakfast", "tea_earl_grey"]
+        children: ["tea_english_breakfast", "tea_earl_grey"],
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(67,43,11)",
+        shadowColor: "rgb(52,33,8)"
     },
     {
         id: "type_cacao",
         name: "Какао",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["cacao_classic", "cacao_caramel"]
+        children: ["cacao_classic", "cacao_caramel"],
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(172,119,48)",
+        shadowColor: "rgb(156,102,31)"
+    },
+    {
+        id: "type_hot_chocolate",
+        name: "Горячий Шоколад",
+        image: "img3.webp",
+        text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
+        children: ["hot_chocolate_200"],
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(172,119,48)",
+        shadowColor: "rgb(156,102,31)"
+    },
+    {
+        id: "hot_chocolate_200",
+        name: "Горячий Шоколад 200мл",
+        image: "img3.webp",
+        price: 350
     },
     {
         id: "type_ice_cream_latte",
         name: "Айс Крим Латте",
         image: "img3.webp",
         text: "Откройте для себя наш освежающий айс крим латте! Сочетание крепкого эспрессо и сливочного мороженого создаёт идеальный напиток, который подарит вам прохладу и наслаждение в каждом глотке.",
-        children: ["ice_cream_latte_classic", "ice_cream_latte_caramel"]
+        children: ["ice_cream_latte_classic", "ice_cream_latte_caramel"],
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(207,200,200)",
+        shadowColor: "rgb(249,223,212)"
     },
     {
         id: "type_milkshake",
         name: "Милкшейк",
         image: "img3.webp",
         text: "Попробуйте наш восхитительный молочный коктейль! Приготовленный из свежего молока и натурального мороженого, он подарит вам истинное наслаждение и сладкое удовольствие в каждом глотке.",
-        children: ["milkshake_classic", "milkshake_caramel", "milkshake_test"]
+        children: ["milkshake_classic", "milkshake_caramel", "milkshake_test"],
+        background: "15628337_5651878.jpg",
+        borderColor: "rgb(255 255 255)",
+        shadowColor: "rgb(220,219,219)"
     },
     {
         id: "coffee_cappucino",
@@ -67,7 +98,10 @@ const branches = [
         image: "img3.webp",
         text: "Идеальное сочетание крепкого эспрессо и нежной пенки из взбитого молока. Каждый глоток этого классического итальянского напитка подарит вам уют и наслаждение, создавая гармонию вкусов и ароматов.",
         contains: "эспрессо / молоко (147 / 174 ккал: белки 7,7 / жиры 7,8 / углеводы 11,3 | белки 8,2 / жиры 10,7 / углеводы 13,2)",
-        children: ["coffee_cappucino_350", "coffee_cappucino_450"]
+        children: ["coffee_cappucino_350", "coffee_cappucino_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "coffee_cappucino_350",
@@ -86,7 +120,10 @@ const branches = [
         name: "Латте Макиато",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["coffee_latte_makiato_350", "coffee_latte_makiato_450"]
+        children: ["coffee_latte_makiato_350", "coffee_latte_makiato_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "coffee_latte_makiato_350",
@@ -105,7 +142,10 @@ const branches = [
         name: "Английский Завтрак",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["tea_english_breakfast_350", "tea_english_breakfast_450"]
+        children: ["tea_english_breakfast_350", "tea_english_breakfast_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "tea_english_breakfast_350",
@@ -124,7 +164,10 @@ const branches = [
         name: "Чарльз Эрл Грей",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["tea_earl_grey_350", "tea_earl_grey_450"]
+        children: ["tea_earl_grey_350", "tea_earl_grey_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "tea_earl_grey_350",
@@ -143,7 +186,10 @@ const branches = [
         name: "Классический",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["cacao_classic_350", "cacao_classic_450"]
+        children: ["cacao_classic_350", "cacao_classic_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "cacao_classic_350",
@@ -162,7 +208,10 @@ const branches = [
         name: "Солёная Карамель",
         image: "img3.webp",
         text: "Откройте для себя разнообразие вкусов с нашими изысканными чаями! От классических черных и зеленых сортов до ароматных травяных сборов — каждый глоток принесет вам наслаждение и умиротворение.",
-        children: ["cacao_caramel_350", "cacao_caramel_450"]
+        children: ["cacao_caramel_350", "cacao_caramel_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "cacao_caramel_350",
@@ -181,7 +230,10 @@ const branches = [
         name: "Классический",
         image: "img3.webp",
         text: "Освежитесь нашим классическим айс крим латте! Это идеальное сочетание охлажденного эспрессо и сливочного мороженого подарит вам неповторимое наслаждение и заряд бодрости.",
-        children: ["ice_cream_latte_classic_350", "ice_cream_latte_classic_450"]
+        children: ["ice_cream_latte_classic_350", "ice_cream_latte_classic_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "ice_cream_latte_classic_350",
@@ -200,7 +252,10 @@ const branches = [
         name: "Солёная Карамель",
         image: "img3.webp",
         text: "Попробуйте наш айс крим латте со вкусом солёной карамели! Этот изысканный напиток сочетает в себе насыщенный эспрессо, сливочное мороженое и тонкую солоновато-сладкую карамель, создавая непревзойденное наслаждение.",
-        children: ["ice_cream_latte_caramel_350", "ice_cream_latte_caramel_450"]
+        children: ["ice_cream_latte_caramel_350", "ice_cream_latte_caramel_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "ice_cream_latte_caramel_350",
@@ -219,7 +274,10 @@ const branches = [
         name: "Классический",
         image: "img3.webp",
         text: "Насладитесь нежным и насыщенным вкусом нашего классического молочного коктейля! Этот любимый напиток, приготовленный из свежего молока и натурального мороженого, подарит вам истинное удовольствие и мгновения радости.",
-        children: ["milkshake_classic_350", "milkshake_classic_450"]
+        children: ["milkshake_classic_350", "milkshake_classic_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "milkshake_classic_350",
@@ -238,7 +296,10 @@ const branches = [
         name: "Солёная Карамель",
         image: "img3.webp",
         text: "Побалуйте себя нашим молочным коктейлем со вкусом солёной карамели! Этот восхитительный напиток сочетает в себе сладость и лёгкую солёность, создавая уникальное вкусовое удовольствие, которое вы не забудете.",
-        children: ["milkshake_caramel_350", "milkshake_caramel_450"]
+        children: ["milkshake_caramel_350", "milkshake_caramel_450"],
+        background: "15628337_5651878.jpg",
+        borderColor: "#5095a3",
+        shadowColor: "#4e78a1"
     },
     {
         id: "milkshake_caramel_350",
@@ -269,7 +330,7 @@ export function App() {
             <Toast className="toast" ref={toast} position='center'/>
             <div className="gh-toppart"
                  style={{
-                     height: checkout.length == 0 ? "100%" : ""
+                     height: checkout.length == 0 ? "99%" : ""
                  }}>
                 <div className="gh-bar">
                     <img src="logo.svg" alt=""></img>
@@ -302,7 +363,7 @@ export function App() {
                                     style={{
                                         backgroundImage,
                                         borderColor: buttonBranch.borderColor,
-                                        boxShadow: "0px 0px 5px 5px " + buttonBranch.shadowColor,
+                                        boxShadow: "0px 0px 7px 1px " + buttonBranch.shadowColor,
                                     }}
                                     onClick={() => {
                                         if (buttonBranch.children != null && buttonBranch.children.length > 0) {
@@ -340,10 +401,13 @@ export function App() {
                 <div className="gh-checkout"
                      onClick={() => setShowCheckout(true)}>
                     <div className="content">
-                        <div className="item">
-                            <div className="name">Капучино</div>
-                            <div className="price">1 x 200р</div>
-                        </div>
+                        {checkout.map((item, i) => {
+                            return <div className="item">
+                                <div className="name">Капучино</div>
+                                <div className="price">1 x 200р</div>
+                            </div>
+                        })}
+
                         <div className="item">
                             <div className="name">Капучино</div>
                             <div className="price">1 x 200р</div>
