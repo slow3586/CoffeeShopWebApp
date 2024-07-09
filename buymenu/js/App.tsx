@@ -86,7 +86,7 @@ const branches = [
         id: "type_milkshake",
         name: "Милкшейк",
         image: "img3.webp",
-        text: "Сочетание свежего молока и роскошного натурального мороженого, которое обещает тебе непередаваемое удовольствие от каждого глотка благодаря невероятной кремовой текстуре и глубокому, насыщенному вкусу.",
+        text: "Свежее молоко и натуральное мороженое обещают тебе непередаваемое удовольствие от каждого глотка благодаря насыщенному вкусу.",
         children: ["milkshake_classic", "milkshake_caramel", "milkshake_test"],
         background: "15628337_5651878.jpg",
         borderColor: "rgb(255 255 255)",
@@ -259,13 +259,13 @@ const branches = [
     },
     {
         id: "ice_cream_latte_caramel_350",
-        name: "Айс Крим Латте Классический 350мл",
+        name: "Айс Крим Латте Солёная Карамель 350мл",
         image: "img3.webp",
         price: 350
     },
     {
         id: "ice_cream_latte_caramel_450",
-        name: "Айс Крим Латте Классический 450мл",
+        name: "Айс Крим Латте Солёная Карамель 450мл",
         image: "img3.webp",
         price: 450
     },
@@ -317,10 +317,15 @@ const branches = [
 
 export function App() {
     const toast = useRef(null);
+    const dialog = useRef(null);
 
     const [trail, setTrail] = useState([]);
     const [checkout, setCheckout] = useState([]);
     const [showCheckout, setShowCheckout] = useState(false);
+
+    if (showCheckout && checkout.length == 0) {
+        setShowCheckout(false);
+    }
 
     const currentBranchId = trail.length > 0 ? trail[trail.length - 1] : null;
     const currentBranch = branches.find(v => v.id === currentBranchId) ?? branches[0];
@@ -329,53 +334,66 @@ export function App() {
 
     return (
         <div className="gh-container">
-            <Toast className="toast" ref={toast} position='center'/>
-            <div className="gh-toppart"
-                 style={{
-                     height: checkout.length == 0 ? "99%" : ""
-                 }}>
-                <div className="gh-bar">
-                    <img src="logo.svg" alt=""></img>
-                    <div>Сеть кофеен</div>
-                </div>
-                <div className="gh-trail">
-                    {trail.length == 0 && <div
-                        className="but">
-                        {checkout.length == 0 ? "Я хочу..." : "А ещё..."}
-                    </div>}
-                    {trail.map((item, i) => {
-                        return <div
-                            className="but"
-                            key={"gh_trail" + i}
-                            onClick={() => {
-                                setTrail(trail.slice(0, i));
-                            }}>
-                            <div className="txt">{branches.find(i => i.id == item).name}</div>
-                            <div className="icon pi pi-times"></div>
-                        </div>
-                    })}
-                </div>
-                <div className={"gh-select" + (isLong == true ? " gh-select-long" : "")}>
-                    {currentBranch.children.map((childId, i) => {
-                            const buttonBranch = branches.find(t => t.id == childId);
-                            if (buttonBranch !== undefined) {
-                                const backgroundImage = buttonBranch.background != undefined ? "url(\"" + buttonBranch.background + "\")" : "none";
-                                return <div
-                                    key={currentBranch.id + "_" + childId}
-                                    style={{
-                                        backgroundImage,
-                                        borderColor: buttonBranch.borderColor,
-                                        boxShadow: "rgb(128 128 128) 0px 0px 7px 1px, rgb(100 100 100) 7px 7px 7px 1px," +
-                                            "inset " + buttonBranch.shadowColor + " 0px 0px 2px 0px",
-                                    }}
-                                    onClick={() => {
-                                        if (buttonBranch.children != null && buttonBranch.children.length > 0) {
-                                            setTrail([...trail, childId]);
-                                            return;
-                                        }
+            <div className="gh-bar">
+                <img src="logo.svg" alt=""></img>
+                <div>Сеть кофеен</div>
+            </div>
+            <div className="gh-trail">
+                {trail.length == 0 && <div
+                    className="but but-msg">
+                    {checkout.length == 0 ? "Я хочу..." : "А ещё..."}
+                </div>}
+                {trail.map((item, i) => {
+                    return <div
+                        className="but"
+                        key={"gh_trail" + i}
+                        onClick={() => {
+                            setTrail(trail.slice(0, i));
+                        }}>
+                        <div className="txt">{branches.find(i => i.id == item).name}</div>
+                        <div className="icon pi pi-times"></div>
+                    </div>
+                })}
+            </div>
+            <div className={"gh-select" + (isLong == true ? " gh-select-long" : "")}>
+                {currentBranch.children.map((childId, i) => {
+                        const buttonBranch = branches.find(t => t.id == childId);
+                        if (buttonBranch !== undefined) {
+                            const backgroundImage = buttonBranch.background != undefined ? "url(\"" + buttonBranch.background + "\")" : "none";
+                            return <div
+                                key={currentBranch.id + "_" + childId}
+                                style={{
+                                    backgroundImage,
+                                    borderColor: buttonBranch.borderColor,
+                                    boxShadow:
+                                        "rgba(0, 0, 0, 0.4) 0px 0px 7px 1px, " +
+                                        "rgba(0, 0, 0, 0.4) 7px 7px 7px 1px, " +
+                                        "inset " + buttonBranch.shadowColor + " 0px 0px 2px 0px",
+                                }}
+                                onClick={() => {
+                                    if (buttonBranch.children != null && buttonBranch.children.length > 0) {
+                                        setTrail([...trail, childId]);
+                                        return;
+                                    }
 
-                                        if (buttonBranch.price > 0) {
-                                            setCheckout([...checkout, buttonBranch]);
+                                    if (buttonBranch.price > 0) {
+                                        if (checkout.length > 6) {
+                                            toast.current.show({
+                                                severity: 'warning',
+                                                summary: 'Ой!',
+                                                detail: "Слишком большой заказ!",
+                                                closable: false,
+                                                life: 3000
+                                            });
+                                            setTimeout(() => toast.current.clear(), 3000)
+                                        } else {
+                                            setCheckout([
+                                                ...checkout,
+                                                {
+                                                    ...buttonBranch,
+                                                    __id: crypto.randomUUID()
+                                                }
+                                            ]);
                                             toast.current.show({
                                                 severity: 'secondary',
                                                 summary: 'Ура!',
@@ -386,19 +404,19 @@ export function App() {
                                             setTimeout(() => toast.current.clear(), 2000)
                                             setTrail([]);
                                         }
-                                    }}
-                                    className="btn-branch">
-                                    <img src={buttonBranch.image} className="img" alt=""/>
-                                    <div className="desc">
-                                        <div className="name">{buttonBranch.name}</div>
-                                        <div className="text">{buttonBranch.text}</div>
-                                    </div>
-                                </div>;
-                            }
-                            return;
+                                    }
+                                }}
+                                className="btn-branch">
+                                <img src={buttonBranch.image} className="img" alt=""/>
+                                <div className="desc">
+                                    <div className="name">{buttonBranch.name}</div>
+                                    <div className="text">{buttonBranch.text}</div>
+                                </div>
+                            </div>;
                         }
-                    )}
-                </div>
+                        return;
+                    }
+                )}
             </div>
             {checkout.length > 0 &&
                 <div className="gh-checkout"
@@ -407,13 +425,13 @@ export function App() {
                         {[...checkout].reverse().slice(0, 2).map((item, i) => {
                             return <div className="item">
                                 <div className="name">{item.name}</div>
-                                <div className="price">{item.price}₽</div>
+                                <div className="price">{item.price}Р</div>
                             </div>
                         })}
-                        {checkout.length > 2 && <div className="item more">{"Ещё " + (checkout.length - 2) + " шт"}</div>}
+                        {checkout.length > 2 && <div className="item more">{"Ещё " + (checkout.length - 2) + " шт."}</div>}
                     </div>
                     <div className="but">
-                        <div className="label">500₽</div>
+                        <div className="label">{checkout.map(item => item.price).reduce((a, b) => a + b)}Р</div>
                         <div className="icon pi pi-shopping-cart"></div>
                     </div>
                 </div>
@@ -423,19 +441,29 @@ export function App() {
                     className="gh-checkout-dialog"
                     draggable={false}
                     resizable={false}
+                    ref={dialog}
                     onHide={() => {
                         if (!showCheckout) return;
                         setShowCheckout(false);
                     }}>
                 <div className="content">
                     <div className="items">
-                        {checkout.map((item, i) => <div className="item">{(i + 1) + ") " + item.name + " " + item.price}</div>)}
+                        {checkout.map((item, i) => <div
+                            onClick={() => {
+                                setCheckout(checkout.filter(c => c.__id !== item.__id));
+                            }}
+                            className="item">
+                            <p>{(i + 1) + ") " + item.name}</p>
+                            <div className="right">{item.price + "Р"}<div className="icon pi pi-times"></div></div>
+                        </div>)}
                     </div>
-                    <div className="footer">
+                    <div className="footer"
+                        onClick={() => {alert("Спасибо за тестирование!")}}>
                         <div>Оплатить через QR-код</div>
                     </div>
                 </div>
             </Dialog>
+            <Toast className="toast" ref={toast} position='center'/>
         </div>
     )
 }

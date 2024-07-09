@@ -2,6 +2,12 @@
 @import "primeflex/primeflex.min.css";
 @import "primeicons/primeicons.css";
 
+@font-size-0: 1.8dvh;
+@font-size-1: 2dvh;
+@font-size-2: 2.2dvh;
+@font-size-3: 2.4dvh;
+@font-size-4: 2.6dvh;
+
 body {
   background-image: url("img2.svg");
   background-size: cover;
@@ -16,28 +22,37 @@ body {
   src: url('intro-regular.woff2') format('woff2');
 }
 
+.p-component{
+  font-family: "Intro", serif;
+}
+
 #root {
   backdrop-filter: blur(10px);
+  height: 100dvh;
+  width: 100dvw;
+  display: flex;
+  justify-content: center;
 }
 
 .aweh {
-  border-radius: 10px;
+  border-radius: 3dvh;
   padding: 10px;
   background-color: white;
   cursor: pointer;
-  box-shadow: rgb(128 128 128) 0px 0px 7px 1px, rgb(100 100 100) 7px 7px 7px 1px, inset rgb(100 100 100) 0px 0px 2px 0px;
+  box-shadow: rgba(128, 128, 128, 0.4) 0 0 7px 1px, rgba(100, 100, 100, 0.4) 7px 7px 7px 1px, inset rgba(100, 100, 100, 0.4) 0 0 2px 0;
 }
 
 .gh-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80vw;
-  height: 100vh;
-  margin-left: 10vw;
+  width: 96%;
+  height: 99%;
+  margin: 0 2dvw;
+  max-width: 60dvh;
 
   .toast {
-    font-size: 28px;
+    font-size: @font-size-2;
 
     .p-toast-message {
       backdrop-filter: none;
@@ -54,11 +69,11 @@ body {
 .gh-bar {
   display: flex;
   width: 100%;
-  height: 170px;
+  height: 15dvh;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  font-size: 30px;
+  font-size: @font-size-3;
 
   img {
     width: 80px;
@@ -69,7 +84,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 87%;
+  height: 10dvh;
   gap: 5px;
 }
 
@@ -78,7 +93,7 @@ body {
   flex-direction: row;
   gap: 10px;
   width: 100%;
-  height: 90px;
+  height: 10dvh;
   flex-shrink: 0;
 
   .but {
@@ -91,22 +106,27 @@ body {
     align-items: center;
     padding: 15px;
     justify-content: space-between;
-    font-size: 26px;
+    font-size: @font-size-2;
 
     .txt {
-      width: 60%;
+      width: 80%;
+      word-break: break-word;
     }
 
     .icon {
       cursor: pointer;
-      font-size: 20px;
+      font-size: @font-size-0;
       opacity: 25%;
     }
+  }
+
+  .but-msg {
+    justify-content: center;
   }
 }
 
 .gh-select-long {
-  box-shadow: inset #717171 0px 0px 20px 1px, #717171 0px 0px 4px 2px;
+  box-shadow: inset rgba(0, 0, 0, 0.1) 0px 0px 20px 1px, rgba(0, 0, 0, 0.1) 0px 0px 4px 2px;
 }
 
 .gh-select {
@@ -118,8 +138,8 @@ body {
   align-items: center;
   overflow-y: scroll;
   scrollbar-width: none;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 20px 40px;
+  border-radius: 3dvh;
   margin: 20px 0px;
 
   .btn-branch {
@@ -128,19 +148,18 @@ body {
     background-position: center;
     align-items: center;
     width: 100%;
-    height: 200px;
-    //max-height: 250px;
+    min-height: 23dvh;
     &:extend(.aweh);
-    padding: 5px 20px;
+    padding: 5px 30px;
     animation: fadein .1s linear;
-    gap: 15px;
+    gap: 25px;
     border: none;
     //box-shadow: rgb(200 200 200) 0px 0px 7px 1px, rgb(83 83 83) 7px 7px 7px 1px, inset rgb(83 83 83) 0px 0px 3px 0px;
     flex-shrink: 0;
 
     .img {
-      width: 125px;
-      height: 125px;
+      width: 14dvh;
+      height: 14dvh;
       flex-shrink: 0;
       border-radius: 20px;
     }
@@ -149,16 +168,14 @@ body {
       display: flex;
       flex-direction: column;
       gap: 5px;
-      backdrop-filter: brightness(1.3);
-      border-radius: 20px;
-      padding: 5px;
+      padding: 10px;
 
       .name {
-        font-size: 30px;
+        font-size: @font-size-4;
       }
 
       .text {
-        font-size: 20px;
+        font-size: @font-size-1;
       }
     }
   }
@@ -167,14 +184,15 @@ body {
 .gh-checkout {
   display: flex;
   width: 100%;
-  height: 130px;
+  height: 15dvh;
   background-color: white;
-  font-size: 28px;
+  font-size: @font-size-2;
   &:extend(.aweh);
   justify-content: space-between;
   background-image: url("13570609_Tropical_green_leaves_in_watercolor_background.jpg");
   background-position: center;
   background-size: cover;
+  flex-shrink: 0;
 
   .content {
     display: flex;
@@ -185,23 +203,24 @@ body {
     .item {
       display: flex;
       flex-direction: column;
-      width: 45%;
+      width: 42%;
       align-items: center;
-      font-size: 24px;
+      font-size: @font-size-2;
       &:extend(.aweh);
       padding: 5px;
       justify-content: center;
-      border: 1px solid #afd2a6;
-      box-shadow: #ccffcd 0px 0px 10px;
+      box-shadow: #89a692 0 0 7px, inset rgb(180 216 191 / 60%) 0 0 3px;
       text-align: center;
+      word-break: break-word;
+      flex-shrink: 0;
 
       .price {
-        font-size: 18px;
+        font-size: @font-size-0;
       }
     }
 
     .more {
-      width: 20%;
+      width: 15%;
     }
   }
 
@@ -209,25 +228,27 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 28px;
+    font-size: @font-size-4;
     padding: 10px;
 
     .icon {
-      font-size: 32px;
+      font-size: @font-size-3;
     }
   }
 }
 
 .gh-checkout-dialog {
-  width: 55vw;
-  height: 60vh;
-  font-size: 28px;
+  width: 80dvw;
+  max-width: 60dvh;
+  height: 75dvh;
+  font-size: @font-size-3;
   background-image: url("13570609_Tropical_green_leaves_in_watercolor_background.jpg");
   background-position: center;
   background-size: cover;
+  box-shadow: 0 0 18px 20px rgba(0, 0, 0, 0.5);
 
-  .p-dialog-header {
-
+  .p-dialog-title {
+    font-size: @font-size-4;
   }
 
   .p-dialog-content, .p-dialog-header {
@@ -260,13 +281,25 @@ body {
       height: 80%;
       overflow-y: scroll;
       scrollbar-width: none;
-      padding: 10px;
+      padding: 20px;
 
       .item {
         width: 100%;
-        height: 100px;
+        min-height: 10dvh;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         &:extend(.aweh);
+        .icon{
+          font-size:@font-size-4;
+        }
+
+        .right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
       }
     }
 

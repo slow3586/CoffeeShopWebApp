@@ -1,9 +1,8 @@
 spring:
   application:
-    name: 'main-service'
+    name: 'greenhousecoffee-buymenu'
   main:
     web-application-type: servlet
-    allow-bean-definition-overriding: true
     banner-mode: 'off'
   devtools:
     livereload:
@@ -13,42 +12,18 @@ spring:
       static-locations:
         - 'file:src/main/resources/static/'
         - 'classpath:/static/'
-  codec:
-    max-in-memory-size: 50MB
+      cache:
+        cachecontrol:
+          no-store: true
+          no-cache: true
+      chain:
+        cache: false
   output:
     ansi:
       enabled: ALWAYS
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:5435/postgres'
-    username: postgres
-    password: postgres
   jackson:
     default-property-inclusion: non_absent
-
 server:
   compression:
     enabled: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, prometheus
-  endpoint:
-    health:
-      enabled: true
-  metrics:
-    distribution:
-      percentiles-histogram:
-        "[http.server.requests]": true
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-  tracing:
-    enabled: true
-    sampling.probability: 1.0
-  zipkin:
-    tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+  port: 8080
