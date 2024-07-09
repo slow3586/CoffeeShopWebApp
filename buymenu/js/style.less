@@ -8,15 +8,24 @@ body {
   background-position: center;
   user-select: none !important;
   margin: 0;
+  font-family: "Intro", serif;
+}
+
+@font-face {
+  font-family: 'Intro';
+  src: url('intro-regular.woff2') format('woff2');
+}
+
+#root {
+  backdrop-filter: blur(10px);
 }
 
 .aweh {
-  border: 1px solid #dcdcdc;
   border-radius: 10px;
   padding: 10px;
   background-color: white;
   cursor: pointer;
-  box-shadow: #977f53 0px 0px 6px;
+  box-shadow: rgb(128 128 128) 0px 0px 7px 1px, rgb(100 100 100) 7px 7px 7px 1px, inset rgb(100 100 100) 0px 0px 2px 0px;
 }
 
 .gh-container {
@@ -26,7 +35,6 @@ body {
   width: 80vw;
   height: 100vh;
   margin-left: 10vw;
-  gap: 15px;
 
   .toast {
     font-size: 28px;
@@ -61,7 +69,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 86%;
+  height: 87%;
   gap: 5px;
 }
 
@@ -83,7 +91,7 @@ body {
     align-items: center;
     padding: 15px;
     justify-content: space-between;
-    font-size: 22px;
+    font-size: 26px;
 
     .txt {
       width: 60%;
@@ -97,16 +105,22 @@ body {
   }
 }
 
+.gh-select-long {
+  box-shadow: inset #717171 0px 0px 20px 1px, #717171 0px 0px 4px 2px;
+}
+
 .gh-select {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 15px;
+  height: 100%;
+  gap: 20px;
   align-items: center;
   overflow-y: scroll;
   scrollbar-width: none;
-  padding: 5px;
+  padding: 20px;
   border-radius: 10px;
+  margin: 20px 0px;
 
   .btn-branch {
     display: flex;
@@ -120,7 +134,8 @@ body {
     padding: 5px 20px;
     animation: fadein .1s linear;
     gap: 15px;
-    border-width: 2px;
+    border: none;
+    //box-shadow: rgb(200 200 200) 0px 0px 7px 1px, rgb(83 83 83) 7px 7px 7px 1px, inset rgb(83 83 83) 0px 0px 3px 0px;
     flex-shrink: 0;
 
     .img {
@@ -139,11 +154,11 @@ body {
       padding: 5px;
 
       .name {
-        font-size: 28px;
+        font-size: 30px;
       }
 
       .text {
-        font-size: 18px;
+        font-size: 20px;
       }
     }
   }
@@ -152,7 +167,7 @@ body {
 .gh-checkout {
   display: flex;
   width: 100%;
-  height: 120px;
+  height: 130px;
   background-color: white;
   font-size: 28px;
   &:extend(.aweh);
@@ -170,18 +185,23 @@ body {
     .item {
       display: flex;
       flex-direction: column;
-      width: 33%;
+      width: 45%;
       align-items: center;
-      font-size: 22px;
+      font-size: 24px;
       &:extend(.aweh);
       padding: 5px;
       justify-content: center;
       border: 1px solid #afd2a6;
       box-shadow: #ccffcd 0px 0px 10px;
+      text-align: center;
 
       .price {
         font-size: 18px;
       }
+    }
+
+    .more {
+      width: 20%;
     }
   }
 
@@ -200,7 +220,7 @@ body {
 
 .gh-checkout-dialog {
   width: 55vw;
-  height: 80vh;
+  height: 60vh;
   font-size: 28px;
   background-image: url("13570609_Tropical_green_leaves_in_watercolor_background.jpg");
   background-position: center;
@@ -225,6 +245,7 @@ body {
   }
 
   .content {
+    color: black;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -246,7 +267,6 @@ body {
         height: 100px;
         flex-shrink: 0;
         &:extend(.aweh);
-        box-shadow: none;
       }
     }
 
