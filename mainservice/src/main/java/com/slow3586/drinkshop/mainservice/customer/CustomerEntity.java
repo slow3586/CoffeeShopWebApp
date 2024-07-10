@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.mainservice.customer;
 
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +20,5 @@ public class CustomerEntity {
     String qrCode;
     Instant qrCodeExpiresAt;
     String blockedReason;
+
 }

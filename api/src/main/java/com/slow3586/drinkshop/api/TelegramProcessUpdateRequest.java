@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 @Data
 @Builder

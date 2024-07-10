@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.mainservice.customer;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

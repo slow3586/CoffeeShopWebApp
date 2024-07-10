@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: 'drinkshop-cashiermenu'
+  main:
+    web-application-type: servlet
+    banner-mode: 'off'
+  devtools:
+    livereload:
+      enabled: true
+  web:
+    resources:
+      static-locations:
+        - 'file:src/main/resources/static/'
+        - 'classpath:/static/'
+      cache:
+        cachecontrol:
+          no-store: true
+          no-cache: true
+      chain:
+        cache: false
+  output:
+    ansi:
+      enabled: ALWAYS
+server:
+  compression:
+    enabled: true
+  port: 8080

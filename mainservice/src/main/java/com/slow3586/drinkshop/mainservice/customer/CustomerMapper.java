@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.mainservice.customer;
 
 import com.slow3586.drinkshop.api.CustomerDto;
 import com.slow3586.drinkshop.api.IMapStructConfig;

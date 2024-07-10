@@ -2,6 +2,9 @@ package com.slow3586.drinkshop.mainservice;
 
 import com.slow3586.drinkshop.api.GetQrCodeResponse;
 import com.slow3586.drinkshop.api.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.mainservice.customer.CustomerEntity;
+import com.slow3586.drinkshop.mainservice.customer.CustomerRepository;
+import com.slow3586.drinkshop.mainservice.customer.CustomerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

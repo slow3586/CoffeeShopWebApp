@@ -18,6 +18,7 @@
         <module>telegrambot</module>
         <module>api</module>
         <module>mainservice</module>
+        <module>cashiermenu</module>
     </modules>
     <url/>
     <licenses>

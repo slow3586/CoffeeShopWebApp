@@ -1,4 +1,6 @@
 var path = require('path');
+const TerserPlugin = require("terser-webpack-plugin");
+const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
@@ -20,7 +22,6 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        //'plugins': ['lodash']
                     }
                 },
                 exclude: /node_modules/,

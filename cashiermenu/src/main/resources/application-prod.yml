@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: 'drinkshop-cashiermenu'
+  main:
+    web-application-type: servlet
+    banner-mode: 'off'
+  web:
+    resources:
+      static-locations:
+        - 'file:src/main/resources/static/'
+        - 'classpath:/static/'
+  output:
+    ansi:
+      enabled: ALWAYS
+server:
+  compression:
+    enabled: true
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    key-store: './certificate.p12'
+    key-alias: 'changeme'
+    key-store-password: 'changeme'
+  port: 443
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling.probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
