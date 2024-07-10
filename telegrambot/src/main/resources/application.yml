@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: 'greenhousecoffee-telegrambot'
+  main:
+    banner-mode: off
+    web-application-type: none
+app:
+  bot:
+    name: Kam333555Bot
+    token: 7166981536:AAG9J4o1hYRzoTLuL9bF63kQd8vZ9tKqFlo

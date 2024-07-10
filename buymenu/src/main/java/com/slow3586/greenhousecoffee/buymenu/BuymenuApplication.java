@@ -22,17 +22,5 @@ public class BuymenuApplication implements WebMvcConfigurer {
     public static void main(String[] args) {
         SpringApplication.run(BuymenuApplication.class, args);
     }
-/*
-    @Bean
-    public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
-            .cors(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .securityContext(c -> c.securityContextRepository(
-                new HttpSessionSecurityContextRepository()))
-            .authorizeHttpRequests(c -> c.anyRequest().permitAll())
-            .headers(h -> h.cacheControl(HeadersConfigurer.CacheControlConfig::disable))
-            .build();
-    }*/
+
 }

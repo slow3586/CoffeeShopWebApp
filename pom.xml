@@ -15,6 +15,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>buymenu</module>
+        <module>telegrambot</module>
+        <module>api</module>
+        <module>mainservice</module>
     </modules>
     <url/>
     <licenses>
@@ -41,10 +44,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
 
