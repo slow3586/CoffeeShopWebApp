@@ -1,6 +1,6 @@
-package com.slow3586.drinkshop.mainservice.customer;
+package com.slow3586.drinkshop.mainservice.producttype;
 
-import com.slow3586.drinkshop.mainservice.customerorder.CustomerOrderEntity;
+import com.slow3586.drinkshop.mainservice.product.ProductEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,24 +24,19 @@ import java.util.UUID;
 @Data
 @Builder
 @Entity
-@Table("customer")
+@Table("product_type")
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerEntity {
+public class ProductTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
-    String telegramId;
     String name;
-    double points;
-    String phoneNumber;
-    String qrCode;
-    Instant qrCodeExpiresAt;
-    String blockedReason;
+    String color;
     @CreatedDate Instant createdAt;
     @LastModifiedDate Instant lastModifiedAt;
 
     @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    List<CustomerOrderEntity> orderList;
+    @JoinColumn(name = "product_type_id")
+    List<ProductEntity> productList;
 }

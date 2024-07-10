@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.mainservice.telegram;
 
 import com.slow3586.drinkshop.api.GetQrCodeResponse;
 import com.slow3586.drinkshop.api.TelegramProcessUpdateResponse;
@@ -19,7 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/telegram")
+@RequestMapping("telegram")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class TelegramService {

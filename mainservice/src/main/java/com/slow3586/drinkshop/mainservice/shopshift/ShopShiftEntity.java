@@ -1,13 +1,9 @@
-package com.slow3586.drinkshop.mainservice.customer;
+package com.slow3586.drinkshop.mainservice.shopshift;
 
-import com.slow3586.drinkshop.mainservice.customerorder.CustomerOrderEntity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,30 +13,20 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
 @Entity
-@Table("customer")
+@Table("shop_shift")
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerEntity {
+public class ShopShiftEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
-    String telegramId;
-    String name;
-    double points;
-    String phoneNumber;
-    String qrCode;
-    Instant qrCodeExpiresAt;
-    String blockedReason;
+    UUID shopId;
+    UUID workerId;
     @CreatedDate Instant createdAt;
     @LastModifiedDate Instant lastModifiedAt;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    List<CustomerOrderEntity> orderList;
 }

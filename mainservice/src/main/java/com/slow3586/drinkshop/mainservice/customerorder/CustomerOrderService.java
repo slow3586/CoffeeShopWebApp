@@ -1,6 +1,6 @@
-package com.slow3586.drinkshop.mainservice.order;
+package com.slow3586.drinkshop.mainservice.customerorder;
 
-import com.slow3586.drinkshop.api.OrderDto;
+import com.slow3586.drinkshop.api.CustomerOrderDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,27 +17,27 @@ import java.util.UUID;
 @RequestMapping("api/order")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class OrderService {
-    OrderRepository orderRepository;
-    OrderMapper orderMapper;
+public class CustomerOrderService {
+    CustomerOrderRepository customerOrderRepository;
+    CustomerOrderMapper customerOrderMapper;
 
     @GetMapping
-    public List<OrderDto> getOrders() {
-        return orderRepository.findAll()
+    public List<CustomerOrderDto> getOrders() {
+        return customerOrderRepository.findAll()
             .stream()
-            .map(orderMapper::toDto)
+            .map(customerOrderMapper::toDto)
             .toList();
     }
 
     @PostMapping
-    public OrderDto create(OrderDto orderDto) {
-        OrderEntity save = orderRepository.save(OrderEntity.builder()
-            .userId(UUID.fromString(orderDto.getPhoneNumber()))
+    public CustomerOrderDto create(CustomerOrderDto customerOrderDto) {
+        CustomerOrderEntity save = customerOrderRepository.save(CustomerOrderEntity.builder()
+            .userId(UUID.fromString(customerOrderDto.getPhoneNumber()))
             .createdAt(Instant.now())
             .status("NEW")
             .product("tea")
             .build());
 
-        return orderMapper.toDto(save);
+        return customerOrderMapper.toDto(save);
     }
 }

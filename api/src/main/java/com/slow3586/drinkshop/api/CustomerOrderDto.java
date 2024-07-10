@@ -7,10 +7,11 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class OrderDto {
+public class CustomerOrderDto {
     UUID id;
     String telegramId;
     String name;
     double points;
     String phoneNumber;
+    List<CustomerOrder>
 }

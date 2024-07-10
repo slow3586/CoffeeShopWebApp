@@ -10,5 +10,12 @@ spring:
     password: postgres
   jackson:
     default-property-inclusion: non_absent
+  liquibase:
+    enabled: true
+    change-log: changelog.sql
+    driver-class-name: org.postgresql.Driver
+    user: postgres
+    password: postgres
+    url: 'jdbc:postgresql://localhost:5434/postgres'
 server:
   port: 8081
