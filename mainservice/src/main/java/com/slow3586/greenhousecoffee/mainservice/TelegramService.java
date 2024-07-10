@@ -1,7 +1,7 @@
-package com.slow3586.greenhousecoffee.mainservice;
+package com.slow3586.drinkshop.mainservice;
 
-import com.slow3586.greenhousecoffee.api.GetQrCodeResponse;
-import com.slow3586.greenhousecoffee.api.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.GetQrCodeResponse;
+import com.slow3586.drinkshop.api.TelegramProcessUpdateResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

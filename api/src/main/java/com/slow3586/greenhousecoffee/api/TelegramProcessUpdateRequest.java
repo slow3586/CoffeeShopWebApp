@@ -1,4 +1,4 @@
-package com.slow3586.greenhousecoffee.api;
+package com.slow3586.drinkshop.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

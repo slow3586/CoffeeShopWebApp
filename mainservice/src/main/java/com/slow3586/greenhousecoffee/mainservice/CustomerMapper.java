@@ -1,8 +1,8 @@
-package com.slow3586.greenhousecoffee.mainservice;
+package com.slow3586.drinkshop.mainservice;
 
-import com.slow3586.greenhousecoffee.api.CustomerDto;
-import com.slow3586.greenhousecoffee.api.IMapStructConfig;
-import com.slow3586.greenhousecoffee.api.IMapStructMapper;
+import com.slow3586.drinkshop.api.CustomerDto;
+import com.slow3586.drinkshop.api.IMapStructConfig;
+import com.slow3586.drinkshop.api.IMapStructMapper;
 import org.mapstruct.Mapper;
 
 @Mapper(config = IMapStructConfig.class)

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: 'greenhousecoffee-buymenu'
+    name: 'drinkshop-buymenu'
   main:
     web-application-type: servlet
     banner-mode: 'off'

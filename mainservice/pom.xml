@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.slow3586</groupId>
-        <artifactId>greenhousecoffee</artifactId>
+        <artifactId>drinkshop</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <groupId>com.slow3586.greenhousecoffee</groupId>
+    <groupId>com.slow3586.drinkshop</groupId>
     <artifactId>mainservice</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>mainservice</name>
@@ -67,7 +67,7 @@
             <version>6.9.7.1</version>
         </dependency>
         <dependency>
-            <groupId>com.slow3586.greenhousecoffee</groupId>
+            <groupId>com.slow3586.drinkshop</groupId>
             <artifactId>api</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>

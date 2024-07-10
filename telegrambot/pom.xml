@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.slow3586</groupId>
-        <artifactId>greenhousecoffee</artifactId>
+        <artifactId>drinkshop</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <groupId>com.slow3586.greenhousecoffee</groupId>
+    <groupId>com.slow3586.drinkshop</groupId>
     <artifactId>telegrambot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>telegrambot</name>
@@ -44,7 +44,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.slow3586.greenhousecoffee</groupId>
+            <groupId>com.slow3586.drinkshop</groupId>
             <artifactId>api</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>

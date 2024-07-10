@@ -1,4 +1,4 @@
-package com.slow3586.greenhousecoffee.buymenu;
+package com.slow3586.drinkshop.buymenu;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

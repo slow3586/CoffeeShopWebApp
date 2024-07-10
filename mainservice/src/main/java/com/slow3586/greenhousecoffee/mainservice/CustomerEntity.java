@@ -1,4 +1,4 @@
-package com.slow3586.greenhousecoffee.mainservice;
+package com.slow3586.drinkshop.mainservice;
 
 import lombok.Builder;
 import lombok.Data;

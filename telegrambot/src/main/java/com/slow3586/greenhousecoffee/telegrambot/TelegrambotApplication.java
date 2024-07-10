@@ -1,7 +1,7 @@
-package com.slow3586.greenhousecoffee.telegrambot;
+package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.greenhousecoffee.api.TelegramProcessUpdateResponse;
-import com.slow3586.greenhousecoffee.api.TelegramServiceClient;
+import com.slow3586.drinkshop.api.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.TelegramServiceClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -32,8 +32,8 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-@ComponentScan(value = {"com.slow3586.greenhousecoffee.*"})
-@EnableFeignClients(basePackages = "com.slow3586.greenhousecoffee.*")
+@ComponentScan(value = {"com.slow3586.drinkshop.*"})
+@EnableFeignClients(basePackages = "com.slow3586.drinkshop.*")
 public class TelegrambotApplication {
     @Value("${app.bot.token}")
     @NonFinal

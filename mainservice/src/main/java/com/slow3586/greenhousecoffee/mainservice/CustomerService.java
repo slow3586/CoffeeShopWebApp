@@ -1,10 +1,10 @@
-package com.slow3586.greenhousecoffee.mainservice;
+package com.slow3586.drinkshop.mainservice;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.slow3586.greenhousecoffee.api.CustomerDto;
-import com.slow3586.greenhousecoffee.api.GetQrCodeResponse;
+import com.slow3586.drinkshop.api.CustomerDto;
+import com.slow3586.drinkshop.api.GetQrCodeResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: 'greenhousecoffee-telegrambot'
+    name: 'drinkshop-telegrambot'
   main:
     banner-mode: off
     web-application-type: none

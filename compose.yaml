@@ -1,4 +1,4 @@
-name: greenhousecoffee
+name: drinkshop
 
 x-logging: &logging
   driver: "json-file"

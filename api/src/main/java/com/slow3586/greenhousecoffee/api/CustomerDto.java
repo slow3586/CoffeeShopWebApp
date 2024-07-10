@@ -1,4 +1,4 @@
-package com.slow3586.greenhousecoffee.api;
+package com.slow3586.drinkshop.api;
 
 import lombok.Builder;
 import lombok.Data;

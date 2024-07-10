@@ -9,9 +9,9 @@
     </parent>
     <groupId>com.slow3586</groupId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>greenhousecoffee</name>
-    <description>greenhousecoffee</description>
-    <artifactId>greenhousecoffee</artifactId>
+    <name>drinkshop</name>
+    <description>drinkshop</description>
+    <artifactId>drinkshop</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>buymenu</module>
