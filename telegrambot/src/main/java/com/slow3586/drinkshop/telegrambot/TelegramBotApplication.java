@@ -1,7 +1,7 @@
 package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.drinkshop.api.TelegramProcessUpdateResponse;
-import com.slow3586.drinkshop.api.TelegramServiceClient;
+import com.slow3586.drinkshop.api.mainservice.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.mainservice.TelegramServiceClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

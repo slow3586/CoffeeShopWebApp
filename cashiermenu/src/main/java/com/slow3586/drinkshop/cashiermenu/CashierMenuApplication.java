@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication(exclude = {
     org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class}
 )
-public class CashierMenuApplication implements WebMvcConfigurer {
+public class CashierMenuApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(CashierMenuApplication.class, args);

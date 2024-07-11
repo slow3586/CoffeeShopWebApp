@@ -30,9 +30,9 @@
   },
   "scripts": {
     "generate-api": "openapi-typescript api-docs.yaml --output js/api/api.ts",
-    "build": "webpack",
+    "build": "webpack --config webpack.config.js",
     "build-prod": "webpack --config webpack.prod.js",
-    "watch": "webpack --watch",
+    "watch": "webpack --watch --config webpack.config.js",
     "analyze": "webpack --profile --json > stats.json"
   },
   "devDependencies": {

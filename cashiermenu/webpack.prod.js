@@ -3,7 +3,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
-    entry: './js/Root.tsx',
+    entry: './js/RootCashier.tsx',
     cache: true,
     mode: 'production',
     output: {

@@ -24,8 +24,8 @@ export function App() {
     const queryClient = useQueryClient();
 
     const promosQuery = useQuery(
-        ['getPromos'],
-        async () => (await axios.get("/api/promo")).data,
+        ['/api/admin_menu/get_promos'],
+        async () => (await axios.get("/api/admin_menu/get_promos")).data,
         {
             enabled: true
         });
@@ -49,8 +49,8 @@ export function App() {
                 <Column field="text" header="Название" body={(promo: Promo) => promo.name}></Column>
                 <Column field="text" header="Промокод" body={(promo: Promo) => promo.code}></Column>
                 <Column field="text" header="Текст" body={(promo: Promo) => promo.text}></Column>
-                <Column field="text" header="Начинается" body={(promo: Promo) => promo.startsAt.toString()}></Column>
-                <Column field="text" header="Кончается" body={(promo: Promo) => promo.endsAt.toString()}></Column>
+                <Column field="text" header="Начинается" body={(promo: Promo) => promo.startsAt?.toString?.() ?? "?"}></Column>
+                <Column field="text" header="Кончается" body={(promo: Promo) => promo.endsAt?.toString?.() ?? "?"}></Column>
             </DataTable>
             <Dialog header="Создать"
                     visible={showDialog}
@@ -60,8 +60,8 @@ export function App() {
                     footer={<div>
                         <Button
                             onClick={() => {
-                                axios.post("/api/promo/save", newPromo);
-                                queryClient.invalidateQueries("getPromos");
+                                axios.post("/api/admin_menu/create_promo", newPromo);
+                                queryClient.invalidateQueries("/api/admin_menu/get_promos");
                                 setShowDialog(false);
                             }}
                             icon="pi pi-plus" rounded raised/>

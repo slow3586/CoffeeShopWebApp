@@ -1,6 +1,6 @@
 package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.drinkshop.api.TelegramBotPublishRequest;
+import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
