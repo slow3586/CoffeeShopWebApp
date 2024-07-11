@@ -1,6 +1,6 @@
 package com.slow3586.drinkshop.mainservice.customerorder;
 
-import com.slow3586.drinkshop.api.CustomerOrderDto;
+import com.slow3586.drinkshop.api.CustomerOrderEntityDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +22,7 @@ public class CustomerOrderService {
     CustomerOrderMapper customerOrderMapper;
 
     @GetMapping
-    public List<CustomerOrderDto> getOrders() {
+    public List<CustomerOrderEntityDto> getOrders() {
         return customerOrderRepository.findAll()
             .stream()
             .map(customerOrderMapper::toDto)
@@ -30,12 +30,10 @@ public class CustomerOrderService {
     }
 
     @PostMapping
-    public CustomerOrderDto create(CustomerOrderDto customerOrderDto) {
+    public CustomerOrderEntityDto create(CustomerOrderEntityDto customerOrderDto) {
         CustomerOrderEntity save = customerOrderRepository.save(CustomerOrderEntity.builder()
-            .userId(UUID.fromString(customerOrderDto.getPhoneNumber()))
-            .createdAt(Instant.now())
+            .customerId(customerOrderDto.getCustomerId())
             .status("NEW")
-            .product("tea")
             .build());
 
         return customerOrderMapper.toDto(save);

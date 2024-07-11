@@ -34,7 +34,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @ComponentScan(value = {"com.slow3586.drinkshop.*"})
 @EnableFeignClients(basePackages = "com.slow3586.drinkshop.*")
-public class TelegrambotApplication {
+public class TelegramBotApplication {
     @Value("${app.bot.token}")
     @NonFinal
     String botToken;
@@ -44,12 +44,12 @@ public class TelegrambotApplication {
     TelegramServiceClient telegramServiceClient;
 
     public static void main(String[] args) {
-        SpringApplication.run(TelegrambotApplication.class, args);
+        SpringApplication.run(TelegramBotApplication.class, args);
     }
 
     @Bean
-    public TelegramBotsApi telegramBotsApi() throws TelegramApiException {
-        TelegramLongPollingBot telegramLongPollingBot = new TelegramLongPollingBot(botToken) {
+    public TelegramLongPollingBot bot() {
+        return new TelegramLongPollingBot(botToken) {
             @Override
             public String getBotUsername() {
                 return botName;
@@ -99,9 +99,12 @@ public class TelegrambotApplication {
                 }
             }
         };
+    }
 
+    @Bean
+    public TelegramBotsApi telegramBotsApi() throws TelegramApiException {
         final TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-        telegramBotsApi.registerBot(telegramLongPollingBot);
+        telegramBotsApi.registerBot(bot());
         return telegramBotsApi;
     }
 }

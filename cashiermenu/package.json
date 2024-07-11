@@ -25,7 +25,8 @@
     "sass": "^1.64.2",
     "react-cookie": "^4.1.1",
     "tsconfig-paths-webpack-plugin": "^4.1.0",
-    "react-contexify": "^6.0.0"
+    "react-contexify": "^6.0.0",
+    "axios": "^1.7.2"
   },
   "scripts": {
     "generate-api": "openapi-typescript api-docs.yaml --output js/api/api.ts",

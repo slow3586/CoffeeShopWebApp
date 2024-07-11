@@ -1,6 +1,6 @@
 package com.slow3586.drinkshop.mainservice.product;
 
-import com.slow3586.drinkshop.api.ProductDto;
+import com.slow3586.drinkshop.api.ProductEntityDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,7 +19,7 @@ public class ProductService {
     ProductMapper productMapper;
 
     @GetMapping
-    public List<ProductDto> getProducts() {
+    public List<ProductEntityDto> getProducts() {
         return productRepository.findAll()
             .stream()
             .map(productMapper::toDto)

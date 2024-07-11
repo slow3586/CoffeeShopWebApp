@@ -13,14 +13,14 @@ import java.util.UUID;
     url = "${app.client.customer:http://127.0.0.1:8081/api/customer}")
 public interface CustomerClient {
     @GetMapping(value = "/{id}")
-    CustomerDto get(@PathVariable UUID id);
+    CustomerEntityDto get(@PathVariable UUID id);
 
     @GetMapping(value = "/{telegramId}")
-    CustomerDto getByTelegramId(@PathVariable String telegramId);
+    CustomerEntityDto getByTelegramId(@PathVariable String telegramId);
 
     @GetMapping("/qr/{telegramId}")
     GetQrCodeResponse getQrCode(@PathVariable String telegramId);
 
     @PostMapping
-    UUID save(@RequestBody CustomerDto customerDto);
+    UUID save(@RequestBody CustomerEntityDto customerDto);
 }

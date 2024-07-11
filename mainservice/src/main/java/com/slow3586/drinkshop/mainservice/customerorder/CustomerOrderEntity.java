@@ -9,24 +9,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
-@Entity
-@Table("order")
+@Entity(name = "customer_order")
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerOrderEntity {
@@ -40,15 +43,18 @@ public class CustomerOrderEntity {
     @CreatedDate Instant createdAt;
     @LastModifiedDate Instant lastModifiedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
+    @ToString.Exclude
     CustomerEntity customerEntity;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id")
+    @ToString.Exclude
     ShopEntity shopEntity;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @ToString.Exclude
     List<ProductInventoryEntity> productInventoryList;
 }
