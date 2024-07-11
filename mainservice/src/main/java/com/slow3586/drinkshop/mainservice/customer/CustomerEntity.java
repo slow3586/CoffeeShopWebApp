@@ -14,6 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -33,6 +36,7 @@ import java.util.UUID;
 public class CustomerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @UuidGenerator
     UUID id;
     String telegramId;
     String name;
@@ -41,27 +45,6 @@ public class CustomerEntity {
     String qrCode;
     Instant qrCodeExpiresAt;
     String blockedReason;
-    @CreatedDate Instant createdAt;
-    @LastModifiedDate Instant lastModifiedAt;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    @ToString.Exclude
-    List<CustomerOrderEntity> orderList;
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
-        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
-        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
-        if (thisEffectiveClass != oEffectiveClass) return false;
-        CustomerEntity that = (CustomerEntity) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
-    }
-
-    @Override
-    public final int hashCode() {
-        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
-    }
+    @CreationTimestamp Instant createdAt;
+    @UpdateTimestamp Instant lastModifiedAt;
 }

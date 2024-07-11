@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @FeignClient(
     value = "telegramservice",
-    url = "${app.client.telegramservice:http://127.0.0.1:8081/api/telegram}")
+    url = "${app.client.telegramservice:http://127.0.0.1:8080/api/telegram}")
 public interface TelegramServiceClient {
     @PostMapping
     TelegramProcessUpdateResponse process(@RequestBody Update update);

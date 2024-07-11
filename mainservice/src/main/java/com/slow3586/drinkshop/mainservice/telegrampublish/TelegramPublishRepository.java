@@ -14,6 +14,6 @@ public interface TelegramPublishRepository extends JpaRepository<TelegramPublish
     @Override
     List<TelegramPublishEntity> findAll();
 
-    @Query("select t from telegram_publish t where t.attempts < 3 and t.sentAt is null order by t.lastAttemptAt DESC, t.createdAt DESC")
+    @Query("select t from telegram_publish t where t.attempts < 3 and t.sentAt is null order by t.lastAttemptAt DESC, t.createdAt DESC limit 10")
     List<TelegramPublishEntity> findToSend();
 }

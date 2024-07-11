@@ -1,6 +1,7 @@
 package com.slow3586.drinkshop.api;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -9,20 +10,22 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * DTO for {@link PromoEntity}
- */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
 public class PromoEntityDto implements Serializable {
-    private UUID id;
-    private String code;
-    private String name;
-    private String shopTypeId;
-    private String productTypeId;
-    private String status;
-    private Instant createdAt;
-    private Instant lastModifiedAt;
+    UUID id;
+    String code;
+    String name;
+    String text;
+    byte[] image;
+    String shopTypeId;
+    String productTypeId;
+    String status;
+    Instant startsAt;
+    Instant endsAt;
+    Instant createdAt;
+    Instant lastModifiedAt;
 }

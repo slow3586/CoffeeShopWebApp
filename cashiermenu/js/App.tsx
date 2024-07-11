@@ -1,5 +1,5 @@
 import React, {useRef, useState} from "react";
-import {useQuery} from "react-query";
+import {useQuery, useQueryClient} from "react-query";
 import axios from "axios";
 import {Nullable} from "primereact/ts-helpers";
 import {Button} from "primereact/button";
@@ -21,16 +21,16 @@ class Promo {
 
 export function App() {
     const toast = useRef(null);
+    const queryClient = useQueryClient();
 
     const promosQuery = useQuery(
-        ['getFrontendConfig'],
+        ['getPromos'],
         async () => (await axios.get("/api/promo")).data,
         {
-            staleTime: Infinity,
             enabled: true
         });
 
-    const promos = promosQuery?.data?.configs ?? [];
+    const promos = promosQuery?.data ?? [];
     const [showDialog, setShowDialog] = useState(false);
 
     const [newPromo, setNewPromo] = useState<Nullable<Promo>>(new Promo());
@@ -49,8 +49,8 @@ export function App() {
                 <Column field="text" header="Название" body={(promo: Promo) => promo.name}></Column>
                 <Column field="text" header="Промокод" body={(promo: Promo) => promo.code}></Column>
                 <Column field="text" header="Текст" body={(promo: Promo) => promo.text}></Column>
-                <Column field="text" header="Начинается" body={(promo: Promo) => promo.startsAt.toDateString()}></Column>
-                <Column field="text" header="Кончается" body={(promo: Promo) => promo.endsAt.toDateString()}></Column>
+                <Column field="text" header="Начинается" body={(promo: Promo) => promo.startsAt.toString()}></Column>
+                <Column field="text" header="Кончается" body={(promo: Promo) => promo.endsAt.toString()}></Column>
             </DataTable>
             <Dialog header="Создать"
                     visible={showDialog}
@@ -59,7 +59,11 @@ export function App() {
                     resizable={false}
                     footer={<div>
                         <Button
-                            onClick={() => axios.post("/api/promo/save", newPromo)}
+                            onClick={() => {
+                                axios.post("/api/promo/save", newPromo);
+                                queryClient.invalidateQueries("getPromos");
+                                setShowDialog(false);
+                            }}
                             icon="pi pi-plus" rounded raised/>
                     </div>}
                     onHide={() => {

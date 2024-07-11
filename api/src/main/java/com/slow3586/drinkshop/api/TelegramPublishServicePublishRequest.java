@@ -6,12 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class TelegramProcessUpdateRequest {
-    String telegramId;
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class TelegramPublishServicePublishRequest {
+    List<String> chatIds;
     String text;
 }

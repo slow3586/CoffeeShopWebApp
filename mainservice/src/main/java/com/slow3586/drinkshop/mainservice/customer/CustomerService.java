@@ -30,7 +30,7 @@ public class CustomerService {
     CustomerMapper customerMapper;
     QrCodeUtils qrCodeUtils;
 
-    @PostMapping
+    @PostMapping("find")
     public CustomerEntityDto findOne(CustomerEntityDto customerDto) {
         Example<CustomerEntity> customerEntityExample = Example.of(
             customerMapper.toEntity(customerDto),
@@ -41,7 +41,7 @@ public class CustomerService {
             .orElse(null);
     }
 
-    @PostMapping
+    @PostMapping("save")
     public UUID save(CustomerEntityDto customerDto) {
         return customerRepository.save(customerMapper.toEntity(customerDto)).getId();
     }

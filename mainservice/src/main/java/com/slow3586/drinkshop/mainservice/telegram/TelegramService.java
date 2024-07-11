@@ -19,7 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.util.List;
 
 @RestController
-@RequestMapping("telegram")
+@RequestMapping("api/telegram")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class TelegramService {

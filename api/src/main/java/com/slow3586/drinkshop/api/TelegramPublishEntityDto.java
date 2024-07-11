@@ -20,7 +20,7 @@ import java.util.UUID;
 @Builder
 public class TelegramPublishEntityDto implements Serializable {
     private UUID id;
-    private String customerId;
+    private String telegramId;
     private String text;
     private Instant createdAt;
     private Instant lastModifiedAt;

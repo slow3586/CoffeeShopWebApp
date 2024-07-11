@@ -17,5 +17,10 @@ spring:
     user: postgres
     password: postgres
     url: 'jdbc:postgresql://localhost:5434/postgres'
+
+app:
+  client:
+    telegrambot: http://localhost:8085/api/telegrambot
+
 server:
-  port: 8081
+  port: 8083

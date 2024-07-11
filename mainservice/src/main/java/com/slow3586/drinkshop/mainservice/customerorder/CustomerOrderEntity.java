@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -40,21 +42,6 @@ public class CustomerOrderEntity {
     UUID shopId;
     String status;
     int rating;
-    @CreatedDate Instant createdAt;
-    @LastModifiedDate Instant lastModifiedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    @ToString.Exclude
-    CustomerEntity customerEntity;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shop_id")
-    @ToString.Exclude
-    ShopEntity shopEntity;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    @ToString.Exclude
-    List<ProductInventoryEntity> productInventoryList;
+    @CreationTimestamp Instant createdAt;
+    @UpdateTimestamp Instant lastModifiedAt;
 }
