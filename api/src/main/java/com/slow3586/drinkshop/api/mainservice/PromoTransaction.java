@@ -18,4 +18,5 @@ public class PromoTransaction {
     PromoRequest promoRequest;
     List<Customer> validCustomers;
     Boolean registeredForTelegram;
+    String declineReason;
 }

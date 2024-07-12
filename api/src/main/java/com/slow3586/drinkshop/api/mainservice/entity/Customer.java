@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -13,7 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Builder
+@Accessors(chain = true)
 @Table(name = "customer")
 @AllArgsConstructor
 @NoArgsConstructor

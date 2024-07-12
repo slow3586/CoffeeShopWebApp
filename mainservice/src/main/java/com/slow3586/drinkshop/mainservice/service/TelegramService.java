@@ -16,12 +16,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +58,7 @@ public class TelegramService {
     StreamsBuilder streamsBuilder;
     KafkaTemplate<UUID, Object> kafkaTemplate;
     KStream<String, PromoTransaction> promoTransactionKStream;
+    JsonSerde<Object> baseJsonSerde;
 
     @PostMapping
     public TelegramProcessUpdateResponse process(@RequestBody Update update) {
@@ -135,7 +140,7 @@ public class TelegramService {
 
     @PostConstruct
     public void createPromoStream() {
-        promoTransactionKStream
+        streamsBuilder.stream("promo_transaction_customer", Consumed.with(Serdes.String(), baseJsonSerde.copyWithType(PromoTransaction.class)))
             .filter((k, op) -> op != null && op.getValidCustomers() != null && op.getRegisteredForTelegram() == null)
             .mapValues((k, operation) -> {
                 try {
@@ -151,10 +156,11 @@ public class TelegramService {
                     });
                 } catch (Exception e) {
                     log.error("#createPromoStream", e);
-                    return operation.setRegisteredForTelegram(false);
+                    return new PromoTransaction().setRegisteredForTelegram(false);
                 }
-                return operation.setRegisteredForTelegram(true);
-            });
+                return new PromoTransaction().setRegisteredForTelegram(true);
+            })
+            .to("promo_transaction_telegram");
     }
 
     protected GetQrCodeResponse getQrCode(Customer customer) {
@@ -193,5 +199,16 @@ public class TelegramService {
             .partitions(1)
             .compact()
             .build();
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics promoTransactionTelegramTopics() {
+        return new KafkaAdmin.NewTopics(
+            TopicBuilder.name("promo_transaction_customer")
+                .compact()
+                .build(),
+            TopicBuilder.name("promo_transaction_telegram")
+                .compact()
+                .build());
     }
 }
