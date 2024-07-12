@@ -3,7 +3,6 @@ package com.slow3586.drinkshop.api.mainservice.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -14,7 +13,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain = true, fluent = true)
 @Table(name = "customer")
 @AllArgsConstructor
 @NoArgsConstructor

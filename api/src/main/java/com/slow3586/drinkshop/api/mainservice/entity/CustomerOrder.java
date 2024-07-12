@@ -2,18 +2,16 @@ package com.slow3586.drinkshop.api.mainservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain = true, fluent = true)
 @Table(name = "customer_order")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +21,5 @@ public class CustomerOrder {
     UUID id;
     UUID customerId;
     UUID shopId;
-    String status;
-    Instant paidAt;
-    int rating;
+    Integer rating;
 }

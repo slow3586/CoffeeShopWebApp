@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain = true, fluent = true)
 @Table(name = "telegram_publish")
 @NoArgsConstructor
 @AllArgsConstructor

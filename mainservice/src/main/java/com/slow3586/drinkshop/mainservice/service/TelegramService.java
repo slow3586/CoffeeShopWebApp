@@ -1,31 +1,21 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.PromoTransaction;
 import com.slow3586.drinkshop.api.mainservice.TelegramProcessUpdateResponse;
-import com.slow3586.drinkshop.api.mainservice.TelegramPublishTransaction;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
+import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
+import com.slow3586.drinkshop.mainservice.repository.PromoRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
-import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
-import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.serializer.JsonSerde;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,10 +45,7 @@ public class TelegramService {
     TelegramPublishRepository telegramPublishRepository;
     TelegramBotClient telegramBotClient;
     QrCodeUtils qrCodeUtils;
-    StreamsBuilder streamsBuilder;
-    KafkaTemplate<UUID, Object> kafkaTemplate;
-    KStream<String, PromoTransaction> promoTransactionKStream;
-    JsonSerde<Object> baseJsonSerde;
+    PromoRepository promoRepository;
 
     @PostMapping
     public TelegramProcessUpdateResponse process(@RequestBody Update update) {
@@ -73,25 +60,24 @@ public class TelegramService {
         //region NEW
         if (customer == null) {
             customer = customerRepository.save(
-                Customer.builder()
-                    .telegramId(telegramUser.getId().toString())
-                    .build());
+                new Customer()
+                    .telegramId(telegramUser.getId().toString()));
         }
         //endregion
 
         //region REGISTRATION
-        if (customer.getPhoneNumber() == null) {
+        if (customer.phoneNumber() == null) {
             if (update.getMessage().hasContact()) {
                 final Contact contact = update.getMessage().getContact();
                 final String phoneNumber = contact.getPhoneNumber();
                 final String name = contact.getFirstName();
-                customer.setPhoneNumber(phoneNumber);
-                customer.setName(name);
+                customer.phoneNumber(phoneNumber);
+                customer.name(name);
 
                 if (phoneNumber.startsWith("+7") && phoneNumber.length() == 12) {
                     response.setSendText("Приятно познакомиться, " + name + "! Регистрация прошла успешно.");
                 } else {
-                    customer.setBlockedReason("BAD_PHONE_NUMBER");
+                    customer.blockedReason("BAD_PHONE_NUMBER");
                     response.setSendText("Извини, но для использования приложения необходим российский номер телефона.");
                 }
 
@@ -104,7 +90,7 @@ public class TelegramService {
         //endregion
 
         //region LOGIC
-        if (customer.getPhoneNumber() != null && customer.getBlockedReason() == null) {
+        if (customer.phoneNumber() != null && customer.blockedReason() == null) {
             if (GET_MY_VIRTUAL_CARD.equals(messageText)) {
                 GetQrCodeResponse qrCode = this.getQrCode(customer);
 
@@ -115,7 +101,7 @@ public class TelegramService {
                     + " " + qrCode.getCode().substring(2, 4)
                     + " " + qrCode.getCode().substring(4, 6));
             } else if (GET_MY_POINTS.equals(messageText)) {
-                double points = customer.getPoints();
+                double points = customer.points();
                 if (points == 0) {
                     response.setSendText("У тебя пока ещё нет баллов.");
                 } else {
@@ -124,7 +110,7 @@ public class TelegramService {
             } else if (GET_ALL_DEALS.equals(messageText)) {
                 response.setSendText("В данный момент нет акций.");
             } else if ("/start".equals(messageText)) {
-                response.setSendText("Добро пожаловать обратно, " + customer.getName() + "!");
+                response.setSendText("Добро пожаловать обратно, " + customer.name() + "!");
             }
 
             if (response.getSendText() == null) {
@@ -138,47 +124,43 @@ public class TelegramService {
         return response;
     }
 
-    @PostConstruct
-    public void createPromoStream() {
-        streamsBuilder.stream("promo_transaction_customer", Consumed.with(Serdes.String(), baseJsonSerde.copyWithType(PromoTransaction.class)))
-            .filter((k, op) -> op != null && op.getValidCustomers() != null && op.getRegisteredForTelegram() == null)
-            .mapValues((k, operation) -> {
+    @Scheduled(fixedRate = 1000)
+    @Async
+    public void sendPublishRequestsToBot() {
+        telegramPublishRepository.findToSend()
+            .forEach(entity -> {
                 try {
-                    kafkaTemplate.executeInTransaction(operations -> {
-                        operation.getValidCustomers()
-                            .forEach((customer) -> kafkaTemplate.send(
-                                "telegram_publish_transaction",
-                                UUID.randomUUID(),
-                                new TelegramPublishTransaction()
-                                    .setText(operation.getPromoRequest().getText())
-                                    .setCustomer(customer)));
-                        return 0;
-                    });
+                    telegramBotClient.publish(
+                        TelegramBotPublishRequest.builder()
+                            .chatIds(List.of(entity.telegramId()))
+                            .text(entity.text())
+                            .build());
+                    entity.sentAt(Instant.now());
                 } catch (Exception e) {
-                    log.error("#createPromoStream", e);
-                    return new PromoTransaction().setRegisteredForTelegram(false);
+                    entity.attempts(entity.attempts() + 1);
+                    entity.error(entity.error() + "; " + e.getMessage());
+                    entity.lastAttemptAt(Instant.now());
                 }
-                return new PromoTransaction().setRegisteredForTelegram(true);
-            })
-            .to("promo_transaction_telegram");
+                telegramPublishRepository.save(entity);
+            });
     }
 
     protected GetQrCodeResponse getQrCode(Customer customer) {
-        if (customer.getQrCode() == null || customer.getQrCodeExpiresAt().isBefore(Instant.now())) {
+        if (customer.qrCode() == null || customer.qrCodeExpiresAt().isBefore(Instant.now())) {
             final String code = String.valueOf(
                     LocalTime.now(ZoneId.of("UTC"))
                         .get(ChronoField.MILLI_OF_DAY) + 10_000_000)
                 .substring(0, 6);
 
-            customer.setQrCode(code);
-            customer.setQrCodeExpiresAt(Instant.now().plusSeconds(300));
+            customer.qrCode(code);
+            customer.qrCodeExpiresAt(Instant.now().plusSeconds(300));
             customer = customerRepository.save(customer);
         }
 
-        final byte[] image = qrCodeUtils.generateQRCodeImage(customer.getQrCode());
+        final byte[] image = qrCodeUtils.generateQRCodeImage(customer.qrCode());
 
         return GetQrCodeResponse.builder()
-            .code(customer.getQrCode())
+            .code(customer.qrCode())
             .duration(Duration.ofMinutes(5))
             .image(image)
             .build();
@@ -190,25 +172,5 @@ public class TelegramService {
         String code;
         byte[] image;
         Duration duration;
-    }
-
-    @Bean
-    public NewTopic telegramPublishTransactionTopic() {
-        return TopicBuilder.name("telegram_publish_transaction")
-            .replicas(1)
-            .partitions(1)
-            .compact()
-            .build();
-    }
-
-    @Bean
-    public KafkaAdmin.NewTopics promoTransactionTelegramTopics() {
-        return new KafkaAdmin.NewTopics(
-            TopicBuilder.name("promo_transaction_customer")
-                .compact()
-                .build(),
-            TopicBuilder.name("promo_transaction_telegram")
-                .compact()
-                .build());
     }
 }

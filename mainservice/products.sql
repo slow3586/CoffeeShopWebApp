@@ -1,66 +1,67 @@
-INSERT INTO product_type(id, name)
-VALUES ("drink_hot_chocolate", "Горячий Шоколад"),
-       ("drink_cappuccino", "Капучино"),
-       ("drink_latte_makiato", "Латте Макиато"),
-       ("drink_english_tea", "Английский Завтрак"),
-       ("drink_charles_earl_grey", "Чарльз Эрл Грей"),
-       ("drink_cacao_classic", "Какао Классический"),
-       ("drink_cacao_caramel", "Какао Солёная Карамель"),
-       ("drink_ice_cream_latte_classic", "Айс Крим Латте Классический"),
-       ("drink_ice_cream_latte_caramel", "Айс Крим Латте Солёная Карамель"),
-       ("drink_milkshake_classic", "Милкшейк Классический");
+INSERT INTO product_type(name)
+VALUES ('Горячий Шоколад'),
+       ('Капучино'),
+       ('Латте Макиато'),
+       ('Английский Завтрак'),
+       ('Чарльз Эрл Грей'),
+       ('Какао Классический'),
+       ('Какао Солёная Карамель'),
+       ('Айс Крим Латте Классический'),
+       ('Айс Крим Латте Солёная Карамель'),
+       ('Милкшейк Классический');
 
 INSERT INTO product(product_type_id, label, price)
-VALUES ("drink_hot_chocolate_200", "200мл", 250),
-       ("drink_cappucino_350", "350мл", 350),
-       ("drink_cappucino_450", "450мл", 250),
-       ("drink_latte_makiato_350", "350мл", 350),
-       ("drink_latte_makiato_450", "450мл", 500),
-       ("drink_english_tea_350", "350мл", 500),
-       ("drink_english_tea_450", "450мл", 500),
-       ("drink_charles_earl_grey_350", "350мл", 500),
-       ("drink_charles_earl_grey_450", "450мл", 500),
-       ("drink_cacao_classic_350", "350мл", 500),
-       ("drink_cacao_classic_450", "450мл", 500),
-       ("drink_cacao_caramel_350", "350мл", 500),
-       ("drink_cacao_caramel_450", "450мл", 500),
-       ("drink_ice_cream_latte_classic_350", "350мл", 500),
-       ("drink_ice_cream_latte_classic_450", "450мл", 500),
-       ("drink_ice_cream_latte_caramel_350", "350мл", 500),
-       ("drink_ice_cream_latte_caramel_450", "450мл", 500),
-       ("drink_milkshake_classic_350", "350мл", 500),
-       ("drink_milkshake_classic_450", "450мл", 500);
+VALUES ((select id from product_type t where t.name = 'Горячий Шоколад'), '200мл', 250),
+       ((select id from product_type t where t.name = 'Капучино'), '350мл', 350),
+       ((select id from product_type t where t.name = 'Капучино'), '450мл', 250),
+       ((select id from product_type t where t.name = 'Латте Макиато'), '350мл', 350),
+       ((select id from product_type t where t.name = 'Латте Макиато'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Английский Завтрак'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Английский Завтрак'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Чарльз Эрл Грей'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Чарльз Эрл Грей'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Какао Классический'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Какао Классический'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Какао Солёная Карамель'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Какао Солёная Карамель'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Айс Крим Латте Классический'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Айс Крим Латте Классический'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Айс Крим Латте Солёная Карамель'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Айс Крим Латте Солёная Карамель'), '450мл', 500),
+       ((select id from product_type t where t.name = 'Милкшейк Классический'), '350мл', 500),
+       ((select id from product_type t where t.name = 'Милкшейк Классический'), '450мл', 500);
 
-INSERT INTO inventory_type(id, name)
-VALUES ("milk", "Молоко"),
-       ("tea", "Чай"),
-       ("chocolate", "Шоколад");
+INSERT INTO inventory_type(name)
+VALUES ('Молоко'),
+       ('Чай'),
+       ('Шоколад');
 
 INSERT INTO product_inventory(product_id, inventory_id, quantity)
-VALUES ("drink_hot_chocolate_200", "milk", 100),
-       ("drink_hot_chocolate_200", "chocolate", 100),
-       ("drink_cappucino_350", "milk", 100),
-       ("drink_cappucino_450", "milk", 100),
-       ("drink_latte_makiato_350", "milk", 100),
-       ("drink_latte_makiato_450", "milk", 100),
-       ("drink_english_tea_350", "milk", 100),
-       ("drink_english_tea_450", "milk", 100),
-       ("drink_charles_earl_grey_350", "milk", 100),
-       ("drink_charles_earl_grey_450", "milk", 100),
-       ("drink_cacao_classic_350", "milk", 100),
-       ("drink_cacao_classic_450", "milk", 100),
-       ("drink_cacao_caramel_350", "milk", 100),
-       ("drink_cacao_caramel_450", "milk", 100),
-       ("drink_ice_cream_latte_classic_350", "milk", 100),
-       ("drink_ice_cream_latte_classic_450", "milk", 100),
-       ("drink_ice_cream_latte_caramel_350", "milk", 100),
-       ("drink_ice_cream_latte_caramel_450", "milk", 100),
-       ("drink_milkshake_classic_350", "milk", 100),
-       ("drink_milkshake_classic_450", "milk", 100);
+VALUES ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Горячий Шоколад') and t.label = '200мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Горячий Шоколад') and t.label = '200мл'), (select id from inventory_type t where t.name = 'Чай'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Капучино') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Капучино') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Латте Макиато') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Латте Макиато') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Английский Завтрак') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Английский Завтрак') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Чарльз Эрл Грей') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Чарльз Эрл Грей') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Какао Классический') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Какао Классический') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Какао Солёная Карамель') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Какао Солёная Карамель') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Айс Крим Латте Классический') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Айс Крим Латте Классический') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Айс Крим Латте Солёная Карамель') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Айс Крим Латте Солёная Карамель') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Милкшейк Классический') and t.label = '350мл'), (select id from inventory_type t where t.name = 'Молоко'), 100),
+       ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Милкшейк Классический') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100);
 
-INSERT INTO shop_type(id, name)
-VALUES ("greenhouse", "Грин хаус"),
-       ("bubbletea", "Бабл ти");
+INSERT INTO shop(name, location, status)
+VALUES ('Грин хаус', 'Улица', 'OK');
 
-INSERT INTO shop(id, shop_type_id, name, location, status)
-VALUES ("greenhouse_ulica", "greenhouse", "Грин хаус", "Улица", "OK");
+INSERT INTO shop_inventory(shop_id, inventory_type_id, quantity)
+VALUES ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Молоко'), 1000),
+    ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Чай'), 1000),
+    ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Шоколад'), 1000);

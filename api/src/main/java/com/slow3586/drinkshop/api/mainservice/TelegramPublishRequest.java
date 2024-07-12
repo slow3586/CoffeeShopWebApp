@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain = true, fluent = true)
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TelegramPublishRequest {

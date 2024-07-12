@@ -13,8 +13,8 @@ import java.util.UUID;
 @Transactional(transactionManager = "transactionManager")
 public interface PromoRepository extends ListCrudRepository<Promo, UUID> {
     @Query("select * from promo p order by p.created_at offset :offset limit 10")
-    List<Promo> getPromoList(int offset);
+    List<Promo> query(int offset);
 
-    @Query("select * from promo p where p.status = 'NEW'")
-    List<Promo> findToSend();
+    @Query("select * from promo p where p.queued_for_telegram is null")
+    List<Promo> findToQueueForTelegram();
 }

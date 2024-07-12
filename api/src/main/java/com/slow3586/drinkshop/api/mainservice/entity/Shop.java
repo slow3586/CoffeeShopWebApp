@@ -2,7 +2,6 @@ package com.slow3586.drinkshop.api.mainservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -12,7 +11,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain = true, fluent = true)
 @Table(name = "shop")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +19,6 @@ import java.util.UUID;
 public class Shop {
     @Id
     UUID id;
-    String shopTypeId;
     String name;
     String location;
     String status;

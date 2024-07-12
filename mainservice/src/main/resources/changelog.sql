@@ -21,7 +21,6 @@ CREATE TABLE customer_order
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_id      UUID,
     shop_id          UUID,
-    status           TEXT,
     rating           INTEGER,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at TIMESTAMP WITHOUT TIME ZONE
@@ -51,7 +50,7 @@ CREATE TABLE inventory_type
 CREATE TABLE product
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    product_type_id  TEXT,
+    product_type_id  uuid,
     label            TEXT,
     price            DOUBLE PRECISION,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
@@ -75,7 +74,6 @@ CREATE TABLE product_type
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name             TEXT,
     color            TEXT,
-    shop_type_id     TEXT,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at TIMESTAMP WITHOUT TIME ZONE
 );
@@ -83,25 +81,23 @@ CREATE TABLE product_type
 -- changeset lia:1720702806986-8
 CREATE TABLE promo
 (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code             TEXT,
-    name             TEXT,
-    text             TEXT,
-    image            BYTEA,
-    shop_type_id     TEXT,
-    product_type_id  TEXT,
-    status           TEXT             DEFAULT 'NEW',
-    starts_at        TIMESTAMP WITHOUT TIME ZONE,
-    ends_at          TIMESTAMP WITHOUT TIME ZONE,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at TIMESTAMP WITHOUT TIME ZONE
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code                TEXT,
+    name                TEXT,
+    text                TEXT,
+    image               BYTEA,
+    product_type_id     TEXT,
+    queued_for_telegram BOOLEAN,
+    starts_at           TIMESTAMP WITHOUT TIME ZONE,
+    ends_at             TIMESTAMP WITHOUT TIME ZONE,
+    created_at          TIMESTAMP WITHOUT TIME ZONE,
+    last_modified_at    TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:1720702806986-9
 CREATE TABLE shop
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    shop_type_id     TEXT,
     name             TEXT,
     location         TEXT,
     status           TEXT,
@@ -113,8 +109,10 @@ CREATE TABLE shop
 CREATE TABLE shop_inventory
 (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    inventory_type_id UUID,
     shop_id           UUID,
+    inventory_type_id UUID,
+    quantity          int,
+    reserved          int,
     created_at        TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at  TIMESTAMP WITHOUT TIME ZONE
 );
