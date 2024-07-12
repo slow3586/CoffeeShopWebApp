@@ -77,3 +77,33 @@ services:
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
+
+  kafka-broker-0:
+    image: confluentinc/cp-kafka:7.5.5
+    ports: ["9091:9091", "9092:9092"]
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-0:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: BROKER://kafka-broker-0:9091
+      KAFKA_LISTENERS: BROKER://kafka-broker-0:9091, CONTROLLER://kafka-broker-0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:4.0.1
+    restart: always
+    ports: ["9090:9000"]
+    environment:
+      KAFKA_BROKERCONNECT: "kafka-broker-0:9091"
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9000 || exit 1"
+      <<: *healthcheck

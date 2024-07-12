@@ -1,5 +1,6 @@
-package com.slow3586.drinkshop.mainservice.entity;
+package com.slow3586.drinkshop.api.mainservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,13 +12,13 @@ import java.util.UUID;
 
 @Data
 @Builder
-@Table(name = "product_inventory")
+@Table(name = "worker")
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductInventory {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class Worker {
     @Id
     UUID id;
-    UUID productId;
-    UUID inventoryId;
-    double quantity;
+    String name;
+    String status;
 }

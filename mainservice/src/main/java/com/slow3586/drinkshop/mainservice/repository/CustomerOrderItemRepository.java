@@ -1,6 +1,6 @@
 package com.slow3586.drinkshop.mainservice.repository;
 
-import com.slow3586.drinkshop.mainservice.entity.CustomerOrderItem;
+import com.slow3586.drinkshop.api.mainservice.entity.CustomerOrderItem;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Repository
-@Transactional
+@Transactional(transactionManager = "transactionManager")
 public interface CustomerOrderItemRepository extends ListCrudRepository<CustomerOrderItem, UUID> {
 }

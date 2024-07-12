@@ -1,20 +1,27 @@
 package com.slow3586.drinkshop.mainservice.service;
 
+import com.slow3586.drinkshop.api.mainservice.PromoTransaction;
 import com.slow3586.drinkshop.api.mainservice.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.mainservice.TelegramPublishTransaction;
+import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
-import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
-import com.slow3586.drinkshop.mainservice.entity.Customer;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
+import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +36,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/telegram")
@@ -43,6 +51,9 @@ public class TelegramService {
     TelegramPublishRepository telegramPublishRepository;
     TelegramBotClient telegramBotClient;
     QrCodeUtils qrCodeUtils;
+    StreamsBuilder streamsBuilder;
+    KafkaTemplate<UUID, Object> kafkaTemplate;
+    KStream<String, PromoTransaction> promoTransactionKStream;
 
     @PostMapping
     public TelegramProcessUpdateResponse process(@RequestBody Update update) {
@@ -122,25 +133,27 @@ public class TelegramService {
         return response;
     }
 
-    @Scheduled(fixedRate = 1000)
-    @Async
-    public void sendPublishRequestsToBot() {
-        telegramPublishRepository.findToSend()
-            .forEach(entity -> {
+    @PostConstruct
+    public void createPromoStream() {
+        promoTransactionKStream
+            .filter((k, op) -> op != null && op.getValidCustomers() != null && op.getRegisteredForTelegram() == null)
+            .mapValues((k, operation) -> {
                 try {
-                    telegramBotClient.publish(
-                        TelegramBotPublishRequest.builder()
-                            .chatIds(List.of(entity.getTelegramId()))
-                            .text(entity.getText())
-                            .build());
-                    entity.setSentAt(Instant.now());
+                    kafkaTemplate.executeInTransaction(operations -> {
+                        operation.getValidCustomers()
+                            .forEach((customer) -> kafkaTemplate.send(
+                                "telegram_publish_transaction",
+                                UUID.randomUUID(),
+                                new TelegramPublishTransaction()
+                                    .setText(operation.getPromoRequest().getText())
+                                    .setCustomer(customer)));
+                        return 0;
+                    });
                 } catch (Exception e) {
-                    log.error("#sendPublishRequestsToBot", e);
-                    entity.setAttempts(entity.getAttempts() + 1);
-                    entity.setError(entity.getError() + "; " + e.getMessage());
-                    entity.setLastAttemptAt(Instant.now());
+                    log.error("#createPromoStream", e);
+                    return operation.setRegisteredForTelegram(false);
                 }
-                telegramPublishRepository.save(entity);
+                return operation.setRegisteredForTelegram(true);
             });
     }
 
@@ -171,5 +184,14 @@ public class TelegramService {
         String code;
         byte[] image;
         Duration duration;
+    }
+
+    @Bean
+    public NewTopic telegramPublishTransactionTopic() {
+        return TopicBuilder.name("telegram_publish_transaction")
+            .replicas(1)
+            .partitions(1)
+            .compact()
+            .build();
     }
 }

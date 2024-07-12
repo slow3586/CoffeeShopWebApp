@@ -1,13 +1,15 @@
 package com.slow3586.drinkshop.mainservice.repository;
 
-import com.slow3586.drinkshop.mainservice.entity.ProductInventory;
+import com.slow3586.drinkshop.api.mainservice.entity.ProductInventory;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Transactional
+@Transactional(transactionManager = "transactionManager")
 public interface ProductInventoryRepository extends ListCrudRepository<ProductInventory, UUID> {
+    List<ProductInventory> findByProductId(UUID productId);
 }

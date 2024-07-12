@@ -1,5 +1,6 @@
-package com.slow3586.drinkshop.mainservice.entity;
+package com.slow3586.drinkshop.api.mainservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,18 +14,22 @@ import java.util.UUID;
 
 @Data
 @Builder
-@Table(name = "customer")
-@AllArgsConstructor
+@Table(name = "promo")
 @NoArgsConstructor
-public class Customer {
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class Promo {
     @Id
     UUID id;
+    String code;
     @NotNull
-    String telegramId;
     String name;
-    double points;
-    String phoneNumber;
-    String qrCode;
-    Instant qrCodeExpiresAt;
-    String blockedReason;
+    @NotNull
+    String text;
+    byte[] image;
+    String productTypeId;
+    @NotNull
+    Instant startsAt;
+    @NotNull
+    Instant endsAt;
 }
