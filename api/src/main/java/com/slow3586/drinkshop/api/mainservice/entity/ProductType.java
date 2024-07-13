@@ -11,7 +11,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 @Table(name = "product_type")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +21,4 @@ public class ProductType {
     UUID id;
     String name;
     String color;
-    String shopTypeId;
-
 }

@@ -20,6 +20,7 @@ public class PromoRequest {
     @NotBlank
     String text;
     String productTypeId;
+    byte[] image;
     Instant startsAt;
     Instant endsAt;
 }

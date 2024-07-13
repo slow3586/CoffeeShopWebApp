@@ -12,8 +12,6 @@ import jakarta.ws.rs.QueryParam;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,31 +37,26 @@ public class PromoService {
         return promoRepository.query(Optional.ofNullable(page).orElse(0) * 10);
     }
 
+    @Transactional
     @PostMapping("create")
     public UUID create(@Valid @RequestBody PromoRequest promoRequest) {
-        return promoRepository.save(
+        Promo promo = promoRepository.save(
             new Promo()
-                .name(promoRequest.getName())
-                .code(promoRequest.getCode())
-                .text(promoRequest.getText())
-                .startsAt(promoRequest.getStartsAt())
-                .endsAt(promoRequest.getEndsAt())).id();
-    }
+                .setName(promoRequest.getName())
+                .setCode(promoRequest.getCode())
+                .setText(promoRequest.getText())
+                .setImage(promoRequest.getImage())
+                .setStartsAt(promoRequest.getStartsAt())
+                .setEndsAt(promoRequest.getEndsAt()));
 
-    @Scheduled(fixedDelay = 1000)
-    @Transactional
-    @Async
-    public void send() {
-        promoRepository.findToQueueForTelegram()
-            .forEach(promo -> {
-                telegramPublishRepository.saveAll(
-                    customerRepository.findValidForPromos()
-                        .stream()
-                        .map(c -> new TelegramPublish()
-                            .telegramId(c.telegramId())
-                            .text(promo.text()))
-                        .toList());
-                promoRepository.save(promo.queuedForTelegram(true));
-            });
+        telegramPublishRepository.saveAll(
+            customerRepository.findValidForPromos()
+                .stream()
+                .map(c -> new TelegramPublish()
+                    .setTelegramId(c.getTelegramId())
+                    .setText(promo.getText()))
+                .toList());
+
+        return promo.getId();
     }
 }

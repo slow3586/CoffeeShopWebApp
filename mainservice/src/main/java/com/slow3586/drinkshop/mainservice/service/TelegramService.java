@@ -30,7 +30,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/telegram")
@@ -61,23 +60,23 @@ public class TelegramService {
         if (customer == null) {
             customer = customerRepository.save(
                 new Customer()
-                    .telegramId(telegramUser.getId().toString()));
+                    .setTelegramId(telegramUser.getId().toString()));
         }
         //endregion
 
         //region REGISTRATION
-        if (customer.phoneNumber() == null) {
+        if (customer.getPhoneNumber() == null) {
             if (update.getMessage().hasContact()) {
                 final Contact contact = update.getMessage().getContact();
                 final String phoneNumber = contact.getPhoneNumber();
                 final String name = contact.getFirstName();
-                customer.phoneNumber(phoneNumber);
-                customer.name(name);
+                customer.setPhoneNumber(phoneNumber);
+                customer.setName(name);
 
                 if (phoneNumber.startsWith("+7") && phoneNumber.length() == 12) {
                     response.setSendText("Приятно познакомиться, " + name + "! Регистрация прошла успешно.");
                 } else {
-                    customer.blockedReason("BAD_PHONE_NUMBER");
+                    customer.setBlockedReason("BAD_PHONE_NUMBER");
                     response.setSendText("Извини, но для использования приложения необходим российский номер телефона.");
                 }
 
@@ -90,7 +89,7 @@ public class TelegramService {
         //endregion
 
         //region LOGIC
-        if (customer.phoneNumber() != null && customer.blockedReason() == null) {
+        if (customer.getPhoneNumber() != null && customer.getBlockedReason() == null) {
             if (GET_MY_VIRTUAL_CARD.equals(messageText)) {
                 GetQrCodeResponse qrCode = this.getQrCode(customer);
 
@@ -101,7 +100,7 @@ public class TelegramService {
                     + " " + qrCode.getCode().substring(2, 4)
                     + " " + qrCode.getCode().substring(4, 6));
             } else if (GET_MY_POINTS.equals(messageText)) {
-                double points = customer.points();
+                double points = customer.getPoints();
                 if (points == 0) {
                     response.setSendText("У тебя пока ещё нет баллов.");
                 } else {
@@ -110,7 +109,7 @@ public class TelegramService {
             } else if (GET_ALL_DEALS.equals(messageText)) {
                 response.setSendText("В данный момент нет акций.");
             } else if ("/start".equals(messageText)) {
-                response.setSendText("Добро пожаловать обратно, " + customer.name() + "!");
+                response.setSendText("Добро пожаловать обратно, " + customer.getName() + "!");
             }
 
             if (response.getSendText() == null) {
@@ -132,35 +131,35 @@ public class TelegramService {
                 try {
                     telegramBotClient.publish(
                         TelegramBotPublishRequest.builder()
-                            .chatIds(List.of(entity.telegramId()))
-                            .text(entity.text())
+                            .chatIds(List.of(entity.getTelegramId()))
+                            .text(entity.getText())
                             .build());
-                    entity.sentAt(Instant.now());
+                    entity.setSentAt(Instant.now());
                 } catch (Exception e) {
-                    entity.attempts(entity.attempts() + 1);
-                    entity.error(entity.error() + "; " + e.getMessage());
-                    entity.lastAttemptAt(Instant.now());
+                    entity.setAttempts(entity.getAttempts() + 1);
+                    entity.setError(entity.getError() + "; " + e.getMessage());
+                    entity.setLastAttemptAt(Instant.now());
                 }
                 telegramPublishRepository.save(entity);
             });
     }
 
     protected GetQrCodeResponse getQrCode(Customer customer) {
-        if (customer.qrCode() == null || customer.qrCodeExpiresAt().isBefore(Instant.now())) {
+        if (customer.getQrCode() == null || customer.getQrCodeExpiresAt().isBefore(Instant.now())) {
             final String code = String.valueOf(
                     LocalTime.now(ZoneId.of("UTC"))
                         .get(ChronoField.MILLI_OF_DAY) + 10_000_000)
                 .substring(0, 6);
 
-            customer.qrCode(code);
-            customer.qrCodeExpiresAt(Instant.now().plusSeconds(300));
+            customer.setQrCode(code);
+            customer.setQrCodeExpiresAt(Instant.now().plusSeconds(300));
             customer = customerRepository.save(customer);
         }
 
-        final byte[] image = qrCodeUtils.generateQRCodeImage(customer.qrCode());
+        final byte[] image = qrCodeUtils.generateQRCodeImage(customer.getQrCode());
 
         return GetQrCodeResponse.builder()
-            .code(customer.qrCode())
+            .code(customer.getQrCode())
             .duration(Duration.ofMinutes(5))
             .image(image)
             .build();

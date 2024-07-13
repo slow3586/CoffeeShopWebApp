@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 @Table(name = "promo")
 @NoArgsConstructor
 @AllArgsConstructor

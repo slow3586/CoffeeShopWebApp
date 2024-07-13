@@ -11,7 +11,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 @Table(name = "product")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class Product {
     @Id
     UUID id;
-    String productTypeId;
+    UUID productTypeId;
     String label;
-    double price;
+    int price;
 }

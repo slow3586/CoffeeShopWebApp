@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true, fluent = true)
+@Accessors(chain = true)
 @Table(name = "customer")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,7 +24,8 @@ public class Customer {
     @NotNull
     String telegramId;
     String name;
-    double points;
+    int points;
+    int pointsReserved;
     String phoneNumber;
     String qrCode;
     Instant qrCodeExpiresAt;

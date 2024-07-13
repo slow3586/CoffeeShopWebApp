@@ -13,19 +13,14 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Table(name = "customer_order")
+@Table(name = "payment_check")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class CustomerOrder {
+public class PaymentCheck {
     @Id
     UUID id;
-    UUID customerId;
-    UUID shopId;
-
+    UUID paymentId;
+    String paymentSystemStatus;
     String status;
-
-    Instant createdAt;
-    Instant paidAt;
-    Instant completedAt;
 }

@@ -15,13 +15,14 @@ import java.util.UUID;
 public class OrderRequest {
     UUID customerId;
     UUID shopId;
-    List<ProductQuantity> productQuantityList;
+    Boolean usePoints;
+    List<OrderRequestItem> productQuantityList;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public static class ProductQuantity {
+    public static class OrderRequestItem {
         UUID productId;
         int quantity;
     }

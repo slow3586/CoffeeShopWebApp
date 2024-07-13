@@ -59,9 +59,9 @@ VALUES ((select id from product t where t.product_type_id = (select id from prod
        ((select id from product t where t.product_type_id = (select id from product_type t where t.name = 'Милкшейк Классический') and t.label = '450мл'), (select id from inventory_type t where t.name = 'Молоко'), 100);
 
 INSERT INTO shop(name, location, status)
-VALUES ('Грин хаус', 'Улица', 'OK');
+VALUES ('Грин хауc №1', 'Улица №1', 'OK');
 
 INSERT INTO shop_inventory(shop_id, inventory_type_id, quantity)
-VALUES ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Молоко'), 1000),
-    ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Чай'), 1000),
-    ((select id from shop t where t.name = 'Грин хаус'), (select id from inventory_type t where t.name = 'Шоколад'), 1000);
+VALUES ((select id from shop t where t.name = 'Грин хауc №1'), (select id from inventory_type t where t.name = 'Молоко'), 1000),
+    ((select id from shop t where t.name = 'Грин хауc №1'), (select id from inventory_type t where t.name = 'Чай'), 1000),
+    ((select id from shop t where t.name = 'Грин хауc №1'), (select id from inventory_type t where t.name = 'Шоколад'), 1000);

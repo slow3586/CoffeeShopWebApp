@@ -14,4 +14,5 @@ import java.util.UUID;
 public interface CustomerOrderRepository extends ListCrudRepository<CustomerOrder, UUID> {
     @Query("select * from customer_order p order by p.created_at offset :offset limit 10")
     List<CustomerOrder> query(int offset);
+
 }
