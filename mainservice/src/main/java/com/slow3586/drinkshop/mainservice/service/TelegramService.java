@@ -17,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,7 @@ public class TelegramService {
     PromoRepository promoRepository;
 
     @PostMapping
+    @Secured({"SYSTEM"})
     public TelegramProcessResponse process(@RequestBody TelegramProcessRequest request) {
         final TelegramProcessResponse response = new TelegramProcessResponse();
 

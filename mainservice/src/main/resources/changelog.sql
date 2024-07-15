@@ -55,8 +55,7 @@ CREATE TABLE product_inventory_type
 CREATE TABLE product
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    product_type_id  uuid,
-    label            TEXT,
+    name             TEXT,
     price            INT,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at TIMESTAMP WITHOUT TIME ZONE
@@ -74,11 +73,10 @@ CREATE TABLE product_inventory
 );
 
 -- changeset lia:7
-CREATE TABLE product_type
+CREATE TABLE product_group
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name             TEXT,
-    color            TEXT,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at TIMESTAMP WITHOUT TIME ZONE
 );

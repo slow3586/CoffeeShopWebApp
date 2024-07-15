@@ -2,57 +2,59 @@ package com.slow3586.drinkshop.mainservice.service;
 
 import com.slow3586.drinkshop.api.mainservice.OrderRequest;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
-import com.slow3586.drinkshop.api.mainservice.entity.CustomerOrder;
-import com.slow3586.drinkshop.api.mainservice.entity.CustomerOrderItem;
+import com.slow3586.drinkshop.api.mainservice.entity.Order;
+import com.slow3586.drinkshop.api.mainservice.entity.OrderItem;
 import com.slow3586.drinkshop.api.mainservice.entity.Payment;
 import com.slow3586.drinkshop.api.mainservice.entity.Product;
 import com.slow3586.drinkshop.api.mainservice.entity.ProductInventory;
-import com.slow3586.drinkshop.api.mainservice.entity.ProductType;
 import com.slow3586.drinkshop.api.mainservice.entity.Shop;
 import com.slow3586.drinkshop.api.mainservice.entity.ShopInventory;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
-import com.slow3586.drinkshop.mainservice.repository.CustomerOrderItemRepository;
-import com.slow3586.drinkshop.mainservice.repository.CustomerOrderRepository;
+import com.slow3586.drinkshop.mainservice.repository.OrderItemRepository;
+import com.slow3586.drinkshop.mainservice.repository.OrderRepository;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentCheckRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductInventoryRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductInventoryTypeRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductRepository;
-import com.slow3586.drinkshop.mainservice.repository.ProductTypeRepository;
+import com.slow3586.drinkshop.mainservice.repository.ProductGroupRepository;
 import com.slow3586.drinkshop.mainservice.repository.ShopInventoryRepository;
 import com.slow3586.drinkshop.mainservice.repository.ShopRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import io.vavr.Tuple;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
-import jakarta.ws.rs.QueryParam;
+import io.vavr.control.Option;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("api/order")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class OrderService {
-    CustomerOrderRepository customerOrderRepository;
+    OrderRepository orderRepository;
     ShopInventoryRepository shopInventoryRepository;
-    CustomerOrderItemRepository customerOrderItemRepository;
+    OrderItemRepository orderItemRepository;
     TelegramPublishRepository telegramPublishRepository;
     CustomerRepository customerRepository;
     PaymentRepository paymentRepository;
@@ -60,41 +62,42 @@ public class OrderService {
     TransactionTemplate transactionTemplate;
     ShopRepository shopRepository;
     ProductRepository productRepository;
-    ProductTypeRepository productTypeRepository;
+    ProductGroupRepository productGroupRepository;
     ProductInventoryRepository productInventoryRepository;
     ProductInventoryTypeRepository productInventoryTypeRepository;
 
-    @GetMapping("all")
-    public List<CustomerOrder> all() {
-        return customerOrderRepository.findAll()
-            .map(order -> order.setCustomerOrderItemList(
-                customerOrderItemRepository.findAllByOrderId(order.getId())));
-    }
-
-    @GetMapping("query")
-    public List<CustomerOrder> query(@QueryParam("page") Integer page) {
-        return customerOrderRepository.query(
-            Optional.ofNullable(page).orElse(0) * 10);
+    @GetMapping("findAllActive/{shopId}")
+    @Secured({"SYSTEM", "CASHIER", "ADMIN"})
+    public List<Order> findAllActive(@PathVariable UUID shopId) {
+        return orderRepository.findAllActive(shopId)
+            .map(order -> order
+                .setCustomer(order.getCustomerId() != null ? customerRepository.findById(order.getCustomerId()).get() : null)
+                .setShop(shopRepository.findById(order.getShopId()).get())
+                .setCustomerOrderItemList(
+                    orderItemRepository.findAllByOrderId(order.getId())
+                        .map(i -> i.setProduct(productRepository.findById(i.getProductId()).get()))));
     }
 
     @Transactional
     @PostMapping("create")
     public UUID create(@RequestBody @NonNull OrderRequest orderRequest) {
-        final CustomerOrder customerOrder =
-            customerOrderRepository.save(
-                new CustomerOrder()
+        final Order order =
+            orderRepository.save(
+                new Order()
                     .setCreatedAt(Instant.now())
                     .setCustomerId(orderRequest.getCustomerId())
                     .setShopId(orderRequest.getShopId())
                     .setStatus("CREATED"));
 
-        Customer customer = customerRepository.findById(customerOrder.getCustomerId()).get();
+        Customer customer = Option.of(order.getCustomerId())
+            .flatMap(c -> customerRepository.findById(order.getCustomerId()))
+            .getOrNull();
 
-        List<CustomerOrderItem> customerOrderItems = List.ofAll(
-            customerOrderItemRepository.saveAll(
+        List<OrderItem> customerOrderItems = List.ofAll(
+            orderItemRepository.saveAll(
                 orderRequest.getProductQuantityList()
-                    .map(e -> new CustomerOrderItem()
-                        .setOrderId(customerOrder.getId())
+                    .map(e -> new OrderItem()
+                        .setOrderId(order.getId())
                         .setProductId(e.getProductId())
                         .setQuantity(e.getQuantity()))
                     .toList()));
@@ -103,9 +106,6 @@ public class OrderService {
             Product product = productRepository.findById(i.getProductId())
                 .getOrElseThrow(() -> new IllegalArgumentException(
                     "Product with id " + i.getProductId() + " not found"));
-            ProductType productType = productTypeRepository.findById(product.getProductTypeId())
-                .getOrElseThrow(() -> new IllegalArgumentException(
-                    "Product type with id " + product.getProductTypeId() + " not found"));
 
             Map<ProductInventory, ShopInventory> productInventoryShopInventoryMap =
                 productInventoryRepository.findByProductId(product.getId())
@@ -118,81 +118,82 @@ public class OrderService {
                                 + productInventory.getProductInventoryTypeId())));
 
             return new OrderItemTransactionData()
-                .setProductName(productType.getName() + " " + product.getLabel())
-                .setCustomerOrderItem(i)
+                .setProductName(product.getName())
+                .setOrderItem(i)
                 .setProduct(product)
-                .setProductType(productType)
                 .setProductInventoryToShopInventoryMap(productInventoryShopInventoryMap);
         });
 
         orderItemTransactionDataList.forEach(transactionData ->
             transactionData.getProductInventoryToShopInventoryMap()
                 .forEach((productInventory, shopInventory) -> {
-                    int requiredQuantity = productInventory.getQuantity() * transactionData.getCustomerOrderItem().getQuantity();
+                    int requiredQuantity = productInventory.getQuantity() * transactionData.getOrderItem().getQuantity();
                     int availableQuantity = shopInventory.getQuantity() - shopInventory.getReserved();
 
                     if (availableQuantity < requiredQuantity) {
                         throw new IllegalStateException("Not enough product inventory in shop for order item: "
-                            + transactionData.getCustomerOrderItem().getId());
+                            + transactionData.getOrderItem().getId());
                     }
 
                     shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
                     shopInventoryRepository.save(shopInventory);
                 }));
 
-        Map<CustomerOrderItem, Product> customerOrderItemsMap =
+        Map<OrderItem, Product> customerOrderItemsMap =
             customerOrderItems.toMap(item -> Tuple.of(
                 item, productRepository.findById(item.getProductId()).get()));
 
         final int price = customerOrderItemsMap.map(t -> t._1.getQuantity() * t._2.getPrice()).sum().intValue();
-        final int payInPoints = orderRequest.getUsePoints() ? Math.max(customer.getPoints(), price) : 0;
+        final int payInPoints = customer != null && orderRequest.getUsePoints() ? Math.max(customer.getPoints(), price) : 0;
         final int payInMoney = price - payInPoints;
 
         if (payInPoints > 0) {
             paymentRepository.save(new Payment()
                 .setValue(payInPoints)
                 .setPaymentSystemId("POINTS")
-                .setOrderId(customerOrder.getId()));
+                .setOrderId(order.getId()));
         }
         if (payInMoney > 0) {
             paymentRepository.save(new Payment()
                 .setValue(payInMoney)
                 .setPaymentSystemId("MONEY")
-                .setOrderId(customerOrder.getId()));
+                .setOrderId(order.getId()));
         }
 
-        Shop shop = shopRepository.findById(customerOrder.getShopId()).get();
-        telegramPublishRepository.save(new TelegramPublish()
-            .setTelegramId(customer.getTelegramId())
-            .setText("Оформлен заказ в магазине " + shop.getName() + ", " + shop.getLocation() + ":\n"
-                + orderItemTransactionDataList.map((t) ->
-                    t.getProductName()
-                        + " - "
-                        + t.getCustomerOrderItem().getQuantity()
-                        + "шт. - "
-                        + t.getCustomerOrderItem().getQuantity() * t.getProduct().getPrice()
-                        + "Р")
-                .mkString("\n")
-                + "\nИтого: " + price + "Р\n"
-                + (payInPoints > 0 ? ("Оплачено баллами: " + payInPoints + "/" + price) : "")));
+        if (customer != null) {
+            Shop shop = shopRepository.findById(order.getShopId()).get();
+            telegramPublishRepository.save(new TelegramPublish()
+                .setTelegramId(customer.getTelegramId())
+                .setText("Оформлен заказ в магазине " + shop.getName() + ", " + shop.getLocation() + ":\n"
+                    + orderItemTransactionDataList.map((t) ->
+                        t.getProductName()
+                            + " - "
+                            + t.getOrderItem().getQuantity()
+                            + "шт. - "
+                            + t.getOrderItem().getQuantity() * t.getProduct().getPrice()
+                            + "Р")
+                    .mkString("\n")
+                    + "\nИтого: " + price + "Р\n"
+                    + (payInPoints > 0 ? ("Оплачено баллами: " + payInPoints + "/" + price) : "")));
+        }
 
-        return customerOrder.getId();
+        return order.getId();
     }
 
     @Data
     @Accessors(chain = true)
     public static class OrderItemTransactionData {
         String productName;
-        CustomerOrderItem customerOrderItem;
+        OrderItem orderItem;
         Product product;
-        ProductType productType;
         Map<ProductInventory, ShopInventory> productInventoryToShopInventoryMap;
     }
 
     @PostMapping("complete")
-    public void orderComplete(CustomerOrder order) {
-        customerOrderRepository.findById(order.getId())
+    @Secured({"SYSTEM", "CASHIER", "ADMIN"})
+    public void orderComplete(Order order) {
+        orderRepository.findById(order.getId())
             .map(o -> o.setCompletedAt(Instant.now()))
-            .forEach(customerOrderRepository::save);
+            .forEach(orderRepository::save);
     }
 }

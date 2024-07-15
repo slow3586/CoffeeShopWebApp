@@ -9,8 +9,9 @@
 @font-size-4: 2.6dvh;
 
 .gh-panel {
-  margin: 2%;
-  padding: 2%;
+  display: flex;
+  margin: 1%;
+  padding: 1%;
   box-shadow: #aaaaaaaa 0 0 4px 4px;
   background-color: white;
 }
@@ -64,65 +65,116 @@ body {
 
 .gh-control {
   display: flex;
-  width: 80%;
+  width: 100%;
   justify-content: space-between;
   height: 100%;
 
   .gh-orders {
+    flex: 4;
     display: flex;
-    width: 70%;
+    width: 40%;
     overflow-y: scroll;
     justify-content: flex-start;
     align-content: flex-start;
     flex-wrap: wrap;
+    align-items: stretch;
     &:extend(.gh-panel-big);
 
     .order {
-      width: 31.333%;
+      width: 100%;
       height: 25%;
       margin: 1%;
+      font-size: @font-size-4;
+      gap: 10px;
       &:extend(.gh-panel);
+      flex-direction: column;
+
+      .title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
   }
 
   .gh-neworder {
+    flex: 6;
     display: flex;
     flex-direction: column;
-    width: 30%;
+    width: 60%;
+    align-items: stretch;
     &:extend(.gh-panel-big);
 
     .result {
-      width: 92%;
-      height: 20%;
+      flex: 2;
       padding: 2%;
       margin: 2%;
       background-color: white;
       box-shadow: #aaaaaaaa 0 0 4px 4px;
+      font-size: @font-size-4;
+      overflow-y: scroll;
     }
 
     .gh-products {
+      flex: 5;
       display: flex;
       flex-wrap: wrap;
       width: 100%;
       overflow-y: scroll;
-      justify-content: flex-start;
-      align-content: flex-start;
-      height: 80%;
+      height: 55%;
+      font-size: @font-size-3;
+      align-items: stretch;
+      align-content: stretch;
 
       ::-webkit-scrollbar {
         width: 10px;
       }
 
       .product {
-        width: 46%;
-        height: 20%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 25dvh;
+        min-height: 10dvh;
+        font-size: @font-size-3;
         &:extend(.gh-panel);
       }
     }
 
-    .finish {
-      height: 20%;
+    .customer {
+      flex: 1;
+      display: flex;
+      gap: 5px;
       &:extend(.gh-panel);
+      font-size: @font-size-3;
+      align-items: center;
+      justify-content: center;
+
+      .info {
+        display: flex;
+        align-items: center;
+      }
+
+      .input {
+        gap: 10px;
+
+        input {
+          font-size: @font-size-3;
+          padding: 5px;
+        }
+      }
+    }
+
+    .finish {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .p-button-label {
+        font-size: @font-size-4;
+      }
     }
   }
 }

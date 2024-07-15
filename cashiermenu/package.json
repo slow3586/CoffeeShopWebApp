@@ -27,11 +27,11 @@
     "tsconfig-paths-webpack-plugin": "^4.1.0",
     "react-contexify": "^6.0.0",
     "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
     "openapi-typescript": "^6.7.4",
     "openapi-fetch": "^0.8.2"
   },
   "scripts": {
-    "generate-api": "openapi-typescript openapi.yaml --output js/api/api.ts",
     "build": "webpack --config webpack.config.js",
     "build-prod": "webpack --config webpack.prod.js",
     "watch": "webpack --watch --config webpack.config.js",

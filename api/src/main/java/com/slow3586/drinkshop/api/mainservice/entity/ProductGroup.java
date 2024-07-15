@@ -14,15 +14,14 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Table(name = "product_type")
+@Table(name = "product_group")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ProductType {
+public class ProductGroup {
     @Id
     UUID id;
     String name;
-    String color;
 
     @Transient
     List<Product> productList;

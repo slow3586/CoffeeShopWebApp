@@ -21,8 +21,7 @@ import java.util.UUID;
 public class Product {
     @Id
     UUID id;
-    UUID productTypeId;
-    String label;
+    String name;
     int price;
 
     @Transient

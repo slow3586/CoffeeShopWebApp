@@ -1,10 +1,10 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.entity.CustomerOrder;
+import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Payment;
 import com.slow3586.drinkshop.api.mainservice.entity.PaymentCheck;
-import com.slow3586.drinkshop.mainservice.repository.CustomerOrderRepository;
+import com.slow3586.drinkshop.mainservice.repository.OrderRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentCheckRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentRepository;
 import lombok.AccessLevel;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class PaymentService {
     PaymentRepository paymentRepository;
     PaymentCheckRepository paymentCheckRepository;
-    CustomerOrderRepository customerOrderRepository;
+    OrderRepository orderRepository;
     TransactionTemplate transactionTemplate;
 
     @Data
@@ -58,10 +58,10 @@ public class PaymentService {
                 try {
                     Payment payment = paymentRepository.findById(c.getPaymentId())
                         .getOrElseThrow(() -> new RuntimeException("Payment not found"));
-                    CustomerOrder customerOrder = customerOrderRepository.findById(payment.getOrderId())
+                    Order order = orderRepository.findById(payment.getOrderId())
                         .getOrElseThrow(() -> new RuntimeException("Customer order not found"));
-                    customerOrder.setPaidAt(Instant.now());
-                    customerOrderRepository.save(customerOrder);
+                    order.setPaidAt(Instant.now());
+                    orderRepository.save(order);
                     c.setStatus("PROCESSED");
                 } catch (Exception e) {
                     log.error("#processChecks", e);
