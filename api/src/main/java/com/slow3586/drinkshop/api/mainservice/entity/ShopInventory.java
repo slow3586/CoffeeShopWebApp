@@ -19,7 +19,7 @@ import java.util.UUID;
 public class ShopInventory {
     @Id
     UUID id;
-    UUID inventoryTypeId;
+    UUID productInventoryTypeId;
     UUID shopId;
     int quantity;
     int reserved;

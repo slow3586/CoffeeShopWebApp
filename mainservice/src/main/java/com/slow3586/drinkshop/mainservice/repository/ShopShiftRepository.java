@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.mainservice.repository;
 
+import com.slow3586.drinkshop.api.VavrRepository;
 import com.slow3586.drinkshop.api.mainservice.entity.ShopShift;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.stereotype.Repository;
@@ -9,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 @Transactional(transactionManager = "transactionManager")
-public interface ShopShiftRepository extends ListCrudRepository<ShopShift, UUID> {
+public interface ShopShiftRepository extends VavrRepository<ShopShift> {
 }

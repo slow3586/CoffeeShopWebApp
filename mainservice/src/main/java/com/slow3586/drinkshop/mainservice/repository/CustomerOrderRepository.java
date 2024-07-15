@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.mainservice.repository;
 
+import com.slow3586.drinkshop.api.VavrRepository;
 import com.slow3586.drinkshop.api.mainservice.entity.CustomerOrder;
 import io.vavr.collection.List;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -11,8 +12,7 @@ import java.util.UUID;
 
 @Repository
 @Transactional(transactionManager = "transactionManager")
-public interface CustomerOrderRepository extends ListCrudRepository<CustomerOrder, UUID> {
+public interface CustomerOrderRepository extends VavrRepository<CustomerOrder> {
     @Query("select * from customer_order p order by p.created_at offset :offset limit 10")
     List<CustomerOrder> query(int offset);
-
 }

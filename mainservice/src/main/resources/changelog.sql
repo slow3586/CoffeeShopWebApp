@@ -43,7 +43,7 @@ CREATE TABLE customer_order_item
 );
 
 -- changeset lia:4
-CREATE TABLE inventory_type
+CREATE TABLE product_inventory_type
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name             TEXT,
@@ -65,12 +65,12 @@ CREATE TABLE product
 -- changeset lia:6
 CREATE TABLE product_inventory
 (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    product_id       UUID,
-    inventory_id     UUID,
-    quantity         INT,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at TIMESTAMP WITHOUT TIME ZONE
+    id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id                UUID,
+    product_inventory_type_id UUID,
+    quantity                  INT,
+    created_at                TIMESTAMP WITHOUT TIME ZONE,
+    last_modified_at          TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:7
@@ -113,13 +113,13 @@ CREATE TABLE shop
 -- changeset lia:10
 CREATE TABLE shop_inventory
 (
-    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    shop_id           UUID,
-    inventory_type_id UUID,
-    quantity          int,
-    reserved          int,
-    created_at        TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at  TIMESTAMP WITHOUT TIME ZONE
+    id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    shop_id                   UUID,
+    product_inventory_type_id UUID,
+    quantity                  int,
+    reserved                  int,
+    created_at                TIMESTAMP WITHOUT TIME ZONE,
+    last_modified_at          TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:11

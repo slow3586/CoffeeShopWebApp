@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RequestMapping("api/payment")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+@Slf4j
 public class PaymentService {
     PaymentRepository paymentRepository;
     PaymentCheckRepository paymentCheckRepository;
@@ -54,12 +56,15 @@ public class PaymentService {
         paymentCheckRepository.findByStatus("SUCCESS").forEach(c ->
             transactionTemplate.executeWithoutResult((transactionStatus) -> {
                 try {
-                    Payment payment = paymentRepository.findById(c.getPaymentId()).get();
-                    CustomerOrder customerOrder = customerOrderRepository.findById(payment.getOrderId()).get();
+                    Payment payment = paymentRepository.findById(c.getPaymentId())
+                        .getOrElseThrow(() -> new RuntimeException("Payment not found"));
+                    CustomerOrder customerOrder = customerOrderRepository.findById(payment.getOrderId())
+                        .getOrElseThrow(() -> new RuntimeException("Customer order not found"));
                     customerOrder.setPaidAt(Instant.now());
                     customerOrderRepository.save(customerOrder);
                     c.setStatus("PROCESSED");
                 } catch (Exception e) {
+                    log.error("#processChecks", e);
                     c.setStatus("ERROR");
                 }
                 paymentCheckRepository.save(c);

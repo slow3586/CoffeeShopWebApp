@@ -17,6 +17,7 @@ import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentCheckRepository;
 import com.slow3586.drinkshop.mainservice.repository.PaymentRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductInventoryRepository;
+import com.slow3586.drinkshop.mainservice.repository.ProductInventoryTypeRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductTypeRepository;
 import com.slow3586.drinkshop.mainservice.repository.ShopInventoryRepository;
@@ -50,17 +51,25 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class OrderService {
     CustomerOrderRepository customerOrderRepository;
-    ProductRepository productRepository;
     ShopInventoryRepository shopInventoryRepository;
     CustomerOrderItemRepository customerOrderItemRepository;
-    ProductInventoryRepository productInventoryRepository;
     TelegramPublishRepository telegramPublishRepository;
     CustomerRepository customerRepository;
     PaymentRepository paymentRepository;
     PaymentCheckRepository paymentCheckRepository;
     TransactionTemplate transactionTemplate;
     ShopRepository shopRepository;
+    ProductRepository productRepository;
     ProductTypeRepository productTypeRepository;
+    ProductInventoryRepository productInventoryRepository;
+    ProductInventoryTypeRepository productInventoryTypeRepository;
+
+    @GetMapping("all")
+    public List<CustomerOrder> all() {
+        return customerOrderRepository.findAll()
+            .map(order -> order.setCustomerOrderItemList(
+                customerOrderItemRepository.findAllByOrderId(order.getId())));
+    }
 
     @GetMapping("query")
     public List<CustomerOrder> query(@QueryParam("page") Integer page) {
@@ -79,8 +88,7 @@ public class OrderService {
                     .setShopId(orderRequest.getShopId())
                     .setStatus("CREATED"));
 
-        Customer customer = customerRepository.findById(customerOrder.getCustomerId()).orElseThrow();
-        Shop shop = shopRepository.findById(customerOrder.getShopId()).get();
+        Customer customer = customerRepository.findById(customerOrder.getCustomerId()).get();
 
         List<CustomerOrderItem> customerOrderItems = List.ofAll(
             customerOrderItemRepository.saveAll(
@@ -93,21 +101,21 @@ public class OrderService {
 
         List<OrderItemTransactionData> orderItemTransactionDataList = customerOrderItems.map(i -> {
             Product product = productRepository.findById(i.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .getOrElseThrow(() -> new IllegalArgumentException(
                     "Product with id " + i.getProductId() + " not found"));
             ProductType productType = productTypeRepository.findById(product.getProductTypeId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .getOrElseThrow(() -> new IllegalArgumentException(
                     "Product type with id " + product.getProductTypeId() + " not found"));
 
             Map<ProductInventory, ShopInventory> productInventoryShopInventoryMap =
                 productInventoryRepository.findByProductId(product.getId())
                     .toMap(productInventory -> productInventory,
-                        productInventory -> shopInventoryRepository.findByShopIdAndInventoryTypeId(
+                        productInventory -> shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
                                 orderRequest.getShopId(),
-                                productInventory.getInventoryId())
+                                productInventory.getProductInventoryTypeId())
                             .getOrElseThrow(() -> new IllegalArgumentException("Shop Inventory not found for ShopId: "
                                 + orderRequest.getShopId() + " and InventoryId: "
-                                + productInventory.getInventoryId())));
+                                + productInventory.getProductInventoryTypeId())));
 
             return new OrderItemTransactionData()
                 .setProductName(productType.getName() + " " + product.getLabel())
@@ -153,6 +161,7 @@ public class OrderService {
                 .setOrderId(customerOrder.getId()));
         }
 
+        Shop shop = shopRepository.findById(customerOrder.getShopId()).get();
         telegramPublishRepository.save(new TelegramPublish()
             .setTelegramId(customer.getTelegramId())
             .setText("Оформлен заказ в магазине " + shop.getName() + ", " + shop.getLocation() + ":\n"
@@ -184,6 +193,6 @@ public class OrderService {
     public void orderComplete(CustomerOrder order) {
         customerOrderRepository.findById(order.getId())
             .map(o -> o.setCompletedAt(Instant.now()))
-            .ifPresent(customerOrderRepository::save);
+            .forEach(customerOrderRepository::save);
     }
 }

@@ -12,11 +12,11 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Table(name = "inventory_type")
+@Table(name = "product_product_inventory_type")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class InventoryType {
+public class ProductInventoryType {
     @Id
     UUID id;
     String name;

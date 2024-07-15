@@ -12,12 +12,6 @@ spring:
       static-locations:
         - 'file:src/main/resources/static/'
         - 'classpath:/static/'
-      cache:
-        cachecontrol:
-          no-store: true
-          no-cache: true
-      chain:
-        cache: false
   output:
     ansi:
       enabled: ALWAYS

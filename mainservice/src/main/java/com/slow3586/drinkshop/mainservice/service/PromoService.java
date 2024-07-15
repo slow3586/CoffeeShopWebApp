@@ -51,11 +51,9 @@ public class PromoService {
 
         telegramPublishRepository.saveAll(
             customerRepository.findValidForPromos()
-                .stream()
                 .map(c -> new TelegramPublish()
                     .setTelegramId(c.getTelegramId())
-                    .setText(promo.getText()))
-                .toList());
+                    .setText(promo.getText())));
 
         return promo.getId();
     }

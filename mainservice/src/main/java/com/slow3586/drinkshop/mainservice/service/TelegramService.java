@@ -1,9 +1,10 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
+import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.PromoRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
@@ -20,9 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.telegram.telegrambots.meta.api.objects.Contact;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -47,29 +45,27 @@ public class TelegramService {
     PromoRepository promoRepository;
 
     @PostMapping
-    public TelegramProcessUpdateResponse process(@RequestBody Update update) {
-        final TelegramProcessUpdateResponse response = new TelegramProcessUpdateResponse();
-        if (!update.hasMessage()) {return response;}
+    public TelegramProcessResponse process(@RequestBody TelegramProcessRequest request) {
+        final TelegramProcessResponse response = new TelegramProcessResponse();
 
-        final User telegramUser = update.getMessage().getFrom();
-        final String messageText = update.getMessage().getText();
+        final String telegramUserId = request.getCustomerId();
+        final String messageText = request.getText();
 
-        Customer customer = customerRepository.getByTelegramId(telegramUser.getId().toString());
+        Customer customer = customerRepository.getByTelegramId(telegramUserId);
 
         //region NEW
         if (customer == null) {
             customer = customerRepository.save(
                 new Customer()
-                    .setTelegramId(telegramUser.getId().toString()));
+                    .setTelegramId(telegramUserId));
         }
         //endregion
 
         //region REGISTRATION
         if (customer.getPhoneNumber() == null) {
-            if (update.getMessage().hasContact()) {
-                final Contact contact = update.getMessage().getContact();
-                final String phoneNumber = contact.getPhoneNumber();
-                final String name = contact.getFirstName();
+            if (request.getPhone() != null) {
+                final String phoneNumber = request.getPhone();
+                final String name = request.getName();
                 customer.setPhoneNumber(phoneNumber);
                 customer.setName(name);
 

@@ -1,7 +1,8 @@
 package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.drinkshop.api.mainservice.TelegramProcessUpdateResponse;
+import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.TelegramServiceClient;
+import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -61,11 +63,22 @@ public class TelegramBotApplication {
             @Override
             public void onUpdateReceived(Update update) {
                 try {
-                    final TelegramProcessUpdateResponse process = telegramServiceClient.process(update);
+                    final Message message = update.getMessage();
+                    if (message == null) {return;}
+
+                    TelegramProcessRequest telegramProcessRequest = new TelegramProcessRequest()
+                        .setCustomerId(String.valueOf(message.getChatId()))
+                        .setText(message.getText());
+                    if (message.hasContact()) {
+                        telegramProcessRequest.setPhone(message.getContact().getPhoneNumber())
+                            .setName(message.getContact().getFirstName());
+                    }
+                    final TelegramProcessResponse process =
+                        telegramServiceClient.process(telegramProcessRequest);
 
                     if (process.getSendImageBytes() != null) {
                         this.execute(SendPhoto.builder()
-                            .chatId(update.getMessage().getChatId())
+                            .chatId(message.getChatId())
                             .photo(new InputFile(new ByteArrayInputStream(process.getSendImageBytes()),
                                 process.getSendImageName()))
                             .build());
@@ -74,7 +87,7 @@ public class TelegramBotApplication {
                     if (process.getSendText() != null) {
                         SendMessage.SendMessageBuilder reply = SendMessage
                             .builder()
-                            .chatId(update.getMessage().getChatId())
+                            .chatId(message.getChatId())
                             .text(process.getSendText());
 
                         if (process.getSendTextKeyboard() != null && !process.getSendTextKeyboard().isEmpty()) {

@@ -1,11 +1,13 @@
 package com.slow3586.drinkshop.api.mainservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.vavr.collection.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
@@ -28,4 +30,7 @@ public class CustomerOrder {
     Instant createdAt;
     Instant paidAt;
     Instant completedAt;
+
+    @Transient
+    List<CustomerOrderItem> customerOrderItemList;
 }

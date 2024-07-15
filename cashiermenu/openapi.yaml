@@ -1,0 +1,423 @@
+openapi: "3.1.0"
+info:
+  title: "drinkshop API"
+  description: "drinkshop API"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:8080"
+paths:
+  /api/telegram:
+    post:
+      summary: "POST api/telegram"
+      operationId: "process"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelegramProcessRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TelegramProcessResponse"
+  /api/order/create:
+    post:
+      summary: "POST api/order/create"
+      operationId: "create"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+                format: "uuid"
+  /api/order/complete:
+    post:
+      summary: "POST api/order/complete"
+      operationId: "orderComplete"
+      responses:
+        "200":
+          description: "OK"
+  /api/order/all:
+    get:
+      summary: "GET api/order/all"
+      operationId: "all"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerOrder"
+  /api/order/query:
+    get:
+      summary: "GET api/order/query"
+      operationId: "query"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerOrder"
+  /api/promo/create:
+    post:
+      summary: "POST api/promo/create"
+      operationId: "create"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromoRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+                format: "uuid"
+  /api/promo/query:
+    get:
+      summary: "GET api/promo/query"
+      operationId: "query"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Promo"
+  /api/payment/receive:
+    post:
+      summary: "POST api/payment/receive"
+      operationId: "updateCheckFromPaymentSystem"
+      responses:
+        "200":
+          description: "OK"
+  /api/product/all:
+    get:
+      summary: "GET api/product/all"
+      operationId: "all"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Product"
+  /api/product/query:
+    get:
+      summary: "GET api/product/query"
+      operationId: "query"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Product"
+  /api/product/type/query:
+    get:
+      summary: "GET api/product/type/query"
+      operationId: "queryType"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductType"
+  /api/product/inventory/query:
+    get:
+      summary: "GET api/product/inventory/query"
+      operationId: "queryInventory"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductInventory"
+  /api/product/inventory/type/query:
+    get:
+      summary: "GET api/product/inventory/type/query"
+      operationId: "queryInventoryType"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductInventoryType"
+  /api/shop/all:
+    get:
+      summary: "GET api/shop/all"
+      operationId: "all"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Shop"
+  /api/shop/query:
+    get:
+      summary: "GET api/shop/query"
+      operationId: "query"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Shop"
+  /api/shop/inventory/query:
+    get:
+      summary: "GET api/shop/inventory/query"
+      operationId: "queryInventory"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ShopInventory"
+components:
+  schemas:
+    TelegramProcessRequest:
+      type: "object"
+      properties:
+        customerId:
+          type: "string"
+        text:
+          type: "string"
+        name:
+          type: "string"
+        phone:
+          type: "string"
+    TelegramProcessResponse:
+      type: "object"
+      properties:
+        sendImageBytes:
+          type: "array"
+          items:
+            type: "string"
+            format: "byte"
+        sendImageName:
+          type: "string"
+        sendText:
+          type: "string"
+        sendTextKeyboard:
+          type: "array"
+          items:
+            type: "array"
+        tags:
+          type: "array"
+          items:
+            type: "string"
+    OrderRequestItem:
+      type: "object"
+      properties:
+        productId:
+          type: "string"
+          format: "uuid"
+        quantity:
+          type: "integer"
+          format: "int32"
+    OrderRequest:
+      type: "object"
+      properties:
+        customerId:
+          type: "string"
+          format: "uuid"
+        shopId:
+          type: "string"
+          format: "uuid"
+        usePoints:
+          type: "boolean"
+        productQuantityList:
+          $ref: "#/components/schemas/OrderRequestItem"
+    Instant:
+      type: "object"
+      properties: { }
+    CustomerOrderItem:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        orderId:
+          type: "string"
+          format: "uuid"
+        productId:
+          type: "string"
+          format: "uuid"
+        quantity:
+          type: "integer"
+          format: "int32"
+    CustomerOrder:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        customerId:
+          type: "string"
+          format: "uuid"
+        shopId:
+          type: "string"
+          format: "uuid"
+        status:
+          type: "string"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        paidAt:
+          $ref: "#/components/schemas/Instant"
+        completedAt:
+          $ref: "#/components/schemas/Instant"
+        customerOrderItemList:
+          $ref: "#/components/schemas/CustomerOrderItem"
+    PromoRequest:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        name:
+          type: "string"
+        text:
+          type: "string"
+        productTypeId:
+          type: "string"
+        image:
+          type: "array"
+          items:
+            type: "string"
+            format: "byte"
+        startsAt:
+          $ref: "#/components/schemas/Instant"
+        endsAt:
+          $ref: "#/components/schemas/Instant"
+    Promo:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        code:
+          type: "string"
+        name:
+          type: "string"
+        text:
+          type: "string"
+        image:
+          type: "array"
+          items:
+            type: "string"
+            format: "byte"
+        productTypeId:
+          type: "string"
+        queuedForTelegram:
+          type: "boolean"
+        startsAt:
+          $ref: "#/components/schemas/Instant"
+        endsAt:
+          $ref: "#/components/schemas/Instant"
+    ProductInventoryType:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+    ProductInventory:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        productId:
+          type: "string"
+          format: "uuid"
+        productInventoryTypeId:
+          type: "string"
+          format: "uuid"
+        quantity:
+          type: "integer"
+          format: "int32"
+        productInventoryType:
+          $ref: "#/components/schemas/ProductInventoryType"
+    Product:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        productTypeId:
+          type: "string"
+          format: "uuid"
+        label:
+          type: "string"
+        price:
+          type: "integer"
+          format: "int32"
+        productInventoryList:
+          $ref: "#/components/schemas/ProductInventory"
+    ProductType:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        color:
+          type: "string"
+        productList:
+          $ref: "#/components/schemas/Product"
+    ShopInventory:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        productInventoryTypeId:
+          type: "string"
+          format: "uuid"
+        shopId:
+          type: "string"
+          format: "uuid"
+        quantity:
+          type: "integer"
+          format: "int32"
+        reserved:
+          type: "integer"
+          format: "int32"
+    Shop:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        location:
+          type: "string"
+        status:
+          type: "string"
+        shopInventoryList:
+          $ref: "#/components/schemas/ShopInventory"

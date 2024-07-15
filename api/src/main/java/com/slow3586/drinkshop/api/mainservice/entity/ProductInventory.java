@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
@@ -20,6 +21,9 @@ public class ProductInventory {
     @Id
     UUID id;
     UUID productId;
-    UUID inventoryId;
+    UUID productInventoryTypeId;
     Integer quantity;
+
+    @Transient
+    ProductInventoryType productInventoryType;
 }

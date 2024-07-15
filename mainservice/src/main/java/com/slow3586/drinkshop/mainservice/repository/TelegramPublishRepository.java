@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.mainservice.repository;
 
+import com.slow3586.drinkshop.api.VavrRepository;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.ListCrudRepository;
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 @Transactional(transactionManager = "transactionManager")
-public interface TelegramPublishRepository extends ListCrudRepository<TelegramPublish, UUID> {
+public interface TelegramPublishRepository extends VavrRepository<TelegramPublish> {
     @Query("select * from telegram_publish t where t.attempts < 3 and t.sent_at is null order by t.last_attempt_at DESC, t.created_at DESC limit 10")
     List<TelegramPublish> findToSend();
 }

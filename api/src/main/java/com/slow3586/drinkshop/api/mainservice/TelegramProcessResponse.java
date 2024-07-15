@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TelegramProcessUpdateResponse {
+public class TelegramProcessResponse {
     byte[] sendImageBytes;
     String sendImageName;
     String sendText;
