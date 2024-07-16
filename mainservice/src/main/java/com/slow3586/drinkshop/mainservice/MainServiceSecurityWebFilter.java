@@ -1,7 +1,7 @@
 package com.slow3586.drinkshop.mainservice;
 
-import com.slow3586.bettingplatform.api.SecurityUtils;
-import com.slow3586.bettingplatform.api.userservice.client.AuthServiceClient;
+import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
+import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +15,6 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
@@ -23,7 +22,8 @@ import java.io.IOException;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
-    AuthServiceClient authServiceClient;
+    CustomerRepository customerRepository;
+    WorkerRepository workerRepository;
 
     @Override
     protected void doFilterInternal(
@@ -31,20 +31,17 @@ public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
         @NonNull final HttpServletResponse response,
         @NonNull final FilterChain filterChain
     ) throws ServletException, IOException {
-        final UsernamePasswordAuthenticationToken token =
-            Mono.justOrEmpty(request.getHeader("Authorization"))
-                .filter(s -> s.startsWith(SecurityUtils.BEARER_PREFIX))
-                .mapNotNull(s -> s.substring(SecurityUtils.BEARER_PREFIX.length()))
-                .mapNotNull(authServiceClient::token)
-                .map(uuid -> new UsernamePasswordAuthenticationToken(
-                    uuid,
-                    null,
-                    AuthorityUtils.createAuthorityList("user")))
-                .single()
-                .onErrorReturn(new UsernamePasswordAuthenticationToken(
-                    null,
-                    null))
-                .block();
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            authorization = authorization.substring(7);
+        }
+        new UsernamePasswordAuthenticationToken(
+            uuid,
+            null,
+            AuthorityUtils.createAuthorityList("user"));
+        new UsernamePasswordAuthenticationToken(
+            null,
+            null);
         SecurityContextHolder.getContext().setAuthentication(token);
         filterChain.doFilter(request, response);
     }

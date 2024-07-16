@@ -1,5 +1,5 @@
 import React, {useRef, useState} from "react";
-import {useQuery, useQueryClient} from "react-query";
+import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from "react-query";
 import axios from "axios";
 import {Nullable} from "primereact/ts-helpers";
 import {Button} from "primereact/button";
@@ -9,6 +9,15 @@ import {Dialog} from "primereact/dialog";
 import {InputText} from "primereact/inputtext";
 import {Calendar} from "primereact/calendar";
 import {InputTextarea} from "primereact/inputtextarea";
+import {createRoot} from "react-dom/client";
+
+import './style.less';
+
+createRoot(document.getElementById("root")).render(
+    <QueryClientProvider client={new QueryClient()}>
+        <AppAdmin/>
+    </QueryClientProvider>
+);
 
 class Promo {
     id: number;
@@ -19,7 +28,7 @@ class Promo {
     text: string;
 }
 
-export function App() {
+export function AppAdmin() {
     const toast = useRef(null);
     const queryClient = useQueryClient();
 

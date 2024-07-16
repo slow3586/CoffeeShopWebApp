@@ -5,7 +5,7 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
-    entry: './js/RootCashier.tsx',
+    entry: './js/Admin.tsx',
     devtool: 'source-map',
     cache: true,
     mode: 'development',

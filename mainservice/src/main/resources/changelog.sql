@@ -18,13 +18,14 @@ CREATE TABLE customer
 );
 
 -- changeset lia:2
-CREATE TABLE customer_order
+CREATE TABLE "order"
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_id      UUID,
     shop_id          UUID,
     rating           INTEGER,
     status           TEXT,
+    use_points       BOOLEAN,
     paid_at          TIMESTAMP WITHOUT TIME ZONE,
     completed_at     TIMESTAMP WITHOUT TIME ZONE,
     created_at       TIMESTAMP WITHOUT TIME ZONE,
@@ -165,14 +166,5 @@ CREATE TABLE payment
     sent_to_payment_system_at TIMESTAMP,
     denied_reason             TEXT,
     denied_at                 TIMESTAMP
-);
-
--- changeset lia:15
-CREATE TABLE payment_check
-(
-    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payment_id            UUID NOT NULL,
-    payment_system_status TEXT,
-    status                TEXT
 );
 

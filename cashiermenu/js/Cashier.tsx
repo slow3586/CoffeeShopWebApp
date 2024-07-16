@@ -1,22 +1,22 @@
 import {createRoot} from "react-dom/client";
 
-import './style.less'
 import React, {useRef, useState} from "react";
 import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from "react-query";
 import {Toast} from "primereact/toast";
 import axios from "axios";
 import {Customer, CustomerOrder, OrderRequestItem, Product, Shop} from "./api/classes";
-import {InputText} from "primereact/inputtext";
 import {format} from "date-fns";
 import {Button} from "primereact/button";
 
+import './style.less'
+
 createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={new QueryClient()}>
-        <App/>
+        <AppCashier/>
     </QueryClientProvider>
 );
 
-export function App() {
+export function AppCashier() {
     const queryClient = useQueryClient();
     const toast = useRef(null);
     const [customerCode, setCustomerCode] = useState<string>("");
@@ -42,7 +42,7 @@ export function App() {
         });
     const orderQuery = useQuery(
         ['order'],
-        async () => (await axios.get("/api/order/findAllActive/")).data,
+        async () => (await axios.get("/api/order/findAllActiveByShopId/")).data,
         {
             enabled: true
         });

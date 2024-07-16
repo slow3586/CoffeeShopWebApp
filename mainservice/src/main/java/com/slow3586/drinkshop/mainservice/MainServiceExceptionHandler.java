@@ -7,8 +7,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.lang.reflect.UndeclaredThrowableException;
-
 @Slf4j
 @ControllerAdvice
 public class MainServiceExceptionHandler {
@@ -25,6 +23,13 @@ public class MainServiceExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body("Bad arguments: " + e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity illegalStateException(Exception e) {
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Could not complete: " + e.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

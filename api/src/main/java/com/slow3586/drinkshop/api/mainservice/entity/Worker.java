@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -21,4 +22,13 @@ public class Worker {
     UUID id;
     String name;
     String status;
+    String telegramId;
+
+    String phoneNumber;
+    String password;
+
+    String blockedReason;
+
+    String qrCode;
+    Instant qrCodeExpiresAt;
 }

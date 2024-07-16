@@ -1,22 +1,19 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.entity.Shop;
-import com.slow3586.drinkshop.api.mainservice.entity.ShopInventory;
-import com.slow3586.drinkshop.mainservice.repository.ShopInventoryRepository;
+import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.mainservice.repository.ShopRepository;
-import io.vavr.collection.List;
-import jakarta.ws.rs.QueryParam;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/shop")
@@ -25,13 +22,14 @@ import java.util.Optional;
 @Slf4j
 public class ShopService {
     ShopRepository shopRepository;
-    ShopInventoryRepository shopInventoryRepository;
+    KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @GetMapping("all")
-    @Secured({"SYSTEM", "CASHIER", "ADMIN"})
-    public List<Shop> all() {
-        return shopRepository.findAll()
-            .map(shop -> shop.setShopInventoryList(
-                shopInventoryRepository.findAllByShopId(shop.getId())));
+    @KafkaListener(topics = "order.created")
+    public void processOrder(Order order) {
+        kafkaTemplate.send("order.shop",
+            order.getId(),
+            order.setShop(Optional.ofNullable(order.getShopId())
+                .flatMap(c -> shopRepository.findById(order.getShopId()))
+                .get()));
     }
 }

@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class TelegramProcessRequest {
-    String customerId;
+    String telegramId;
     String text;
 
     String name;

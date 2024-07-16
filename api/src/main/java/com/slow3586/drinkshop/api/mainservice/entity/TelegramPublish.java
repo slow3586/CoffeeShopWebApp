@@ -20,11 +20,11 @@ import java.util.UUID;
 public class TelegramPublish {
     @Id
     UUID id;
+    String telegramBotId;
     String telegramId;
     String text;
     Instant sentAt;
     int attempts;
     String error;
     Instant lastAttemptAt;
-
 }

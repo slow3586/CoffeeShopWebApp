@@ -26,4 +26,6 @@ public class ProductInventory {
 
     @Transient
     ProductInventoryType productInventoryType;
+    @Transient
+    ShopInventory shopInventory;
 }

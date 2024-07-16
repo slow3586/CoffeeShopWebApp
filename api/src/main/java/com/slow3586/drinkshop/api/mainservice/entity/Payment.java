@@ -22,12 +22,13 @@ public class Payment {
     UUID id;
     UUID orderId;
 
+    String paymentSystem;
+    String status;
     int value;
 
-    String paymentSystemId;
-    Boolean sentToPaymentSystem;
     Instant sentToPaymentSystemAt;
 
-    String deniedReason;
-    Instant deniedAt;
+    String checkId;
+    Instant checkReceivedAt;
+    String checkNote;
 }
