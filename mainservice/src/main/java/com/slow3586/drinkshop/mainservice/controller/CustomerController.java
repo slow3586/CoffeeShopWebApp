@@ -3,6 +3,7 @@ package com.slow3586.drinkshop.mainservice.controller;
 
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
+import com.slow3586.drinkshop.mainservice.service.CustomerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,17 +24,17 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @Slf4j
 public class CustomerController {
-    CustomerRepository customerRepository;
+    CustomerService customerService;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
     @GetMapping("findById/{id}")
     public Customer findById(@PathVariable UUID id) {
-        return customerRepository.findById(id).get();
+        return customerService.findById(id);
     }
 
     @GetMapping("findByQrCode/{qrCode}")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
     public Customer findByQrCode(@PathVariable String qrCode) {
-        return customerRepository.findByQrCodeAndQrCodeExpiresAtAfter(qrCode, Instant.now());
+        return customerService.findByQrCode(qrCode);
     }
 }

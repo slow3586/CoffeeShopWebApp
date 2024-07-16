@@ -111,7 +111,7 @@ public class TelegramWorkerService {
                 try {
                     telegramBotClient.publish(
                         TelegramBotPublishRequest.builder()
-                            .chatIds(List.of(entity.getTelegramId()))
+                            .chatIds(List.of(entity.getCustomerTelegramId()))
                             .text(entity.getText())
                             .build());
                     entity.setSentAt(Instant.now());

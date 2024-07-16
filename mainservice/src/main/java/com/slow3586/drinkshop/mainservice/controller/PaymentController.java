@@ -2,6 +2,7 @@ package com.slow3586.drinkshop.mainservice.controller;
 
 
 import com.slow3586.drinkshop.api.mainservice.PaymentSystemUpdate;
+import com.slow3586.drinkshop.api.mainservice.PaymentTopics;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,8 @@ public class PaymentController {
 
     @PostMapping("receive")
     public void receiveUpdate(PaymentSystemUpdate update) {
-        kafkaTemplate.send("payment.system.response", update.getPaymentId(), update);
+        kafkaTemplate.send(PaymentTopics.REQUEST_SYSTEM_RESPONSE,
+            update.getPaymentId(),
+            update);
     }
 }

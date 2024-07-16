@@ -1,14 +1,17 @@
 package com.slow3586.drinkshop.mainservice.service;
 
+import com.slow3586.drinkshop.api.mainservice.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.PromoTopics;
 import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
+import com.slow3586.drinkshop.api.mainservice.TelegramTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
+import com.slow3586.drinkshop.api.mainservice.entity.Promo;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
-import com.slow3586.drinkshop.mainservice.repository.PromoRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
 import lombok.AccessLevel;
@@ -18,10 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +34,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,25 +46,25 @@ public class TelegramCustomerService {
     static String GET_ALL_DEALS = "Акции";
     static String GET_MY_VIRTUAL_CARD = "Виртуальная карта";
     static String GET_MY_POINTS = "Баллы";
-    CustomerRepository customerRepository;
     TelegramPublishRepository telegramPublishRepository;
     TelegramBotClient telegramBotClient;
     QrCodeUtils qrCodeUtils;
-    PromoRepository promoRepository;
+    KafkaTemplate<UUID, Object> kafkaTemplate;
+    CustomerService customerService;
+    private final CustomerRepository customerRepository;
 
-    @PostMapping
-    @Secured({"SYSTEM"})
+    @KafkaListener(topics = TelegramTopics.CUSTOMER_PROCESS_REQUEST)
     public TelegramProcessResponse process(@RequestBody TelegramProcessRequest request) {
         final TelegramProcessResponse response = new TelegramProcessResponse();
 
         final String telegramUserId = request.getTelegramId();
         final String messageText = request.getText();
 
-        Customer customer = customerRepository.getByTelegramId(telegramUserId);
+        Customer customer = customerService.findByTelegramId(telegramUserId);
 
         //region NEW
         if (customer == null) {
-            customer = customerRepository.save(
+            customer = customerService.save(
                 new Customer()
                     .setTelegramId(telegramUserId));
         }
@@ -82,7 +85,7 @@ public class TelegramCustomerService {
                     response.setSendText("Извини, но для использования приложения необходим российский номер телефона.");
                 }
 
-                customer = customerRepository.save(customer);
+                customer = customerService.save(customer);
             } else {
                 response.setSendText("Привет! Для завершения регистрации необходимо поделиться своим контактом.");
                 response.getTags().add("REQUEST_CONTACT");
@@ -125,10 +128,23 @@ public class TelegramCustomerService {
         return response;
     }
 
-    @KafkaListener(topics = "order.customer")
+    @KafkaListener(topics = TelegramTopics.CUSTOMER_PUBLISH_REQUEST)
+    public void processPublishRequest(TelegramBotPublishRequest publishRequest) {
+        TelegramPublish created = telegramPublishRepository.save(new TelegramPublish()
+            .setText(publishRequest.getText())
+            .setCustomerId(publishRequest.getCustomerId())
+            .setCustomerGroupId(publishRequest.getCustomerGroupId())
+            .setStatus("CREATED"));
+
+        kafkaTemplate.send(TelegramTopics.CUSTOMER_PUBLISH_CREATED,
+            created.getId(),
+            created);
+    }
+
+    @KafkaListener(topics = OrderTopics.STATUS_AWAITINGPAYMENT)
     public void processOrder(Order order) {
-        telegramPublishRepository.save(new TelegramPublish()
-            .setTelegramId(order.getCustomer().getTelegramId())
+        this.processPublishRequest(new TelegramBotPublishRequest()
+            .setCustomerId(order.getCustomerId())
             .setText("Оформлен заказ в магазине " + order.getShop().getName()
                 + ", " + order.getShop() + ":\n"
                 + order.getOrderItemList().stream().map((t) ->
@@ -147,25 +163,20 @@ public class TelegramCustomerService {
                 : "")));
     }
 
-    @Scheduled(fixedRate = 1000)
-    @Async
-    public void sendPublishRequestsToBot() {
-        telegramPublishRepository.findToSend()
-            .forEach(entity -> {
-                try {
-                    telegramBotClient.publish(
-                        TelegramBotPublishRequest.builder()
-                            .chatIds(List.of(entity.getTelegramId()))
-                            .text(entity.getText())
-                            .build());
-                    entity.setSentAt(Instant.now());
-                } catch (Exception e) {
-                    entity.setAttempts(entity.getAttempts() + 1);
-                    entity.setError(entity.getError() + "; " + e.getMessage());
-                    entity.setLastAttemptAt(Instant.now());
-                }
-                telegramPublishRepository.save(entity);
-            });
+    @KafkaListener(topics = PromoTopics.TRANSACTION_CREATED)
+    public void processPromo(Promo promo) {
+        this.processPublishRequest(new TelegramBotPublishRequest()
+            .setCustomerGroupId(UUID.randomUUID())
+            .setText(promo.getText()));
+    }
+
+    @KafkaListener(topics = TelegramTopics.CUSTOMER_PUBLISH_CREATED)
+    public void processPublishCreated(TelegramPublish telegramPublish) {
+        customerRepository.findAll().forEach(customer -> {
+            kafkaTemplate.send(TelegramTopics.CUSTOMER_PUBLISH_BOT,
+                telegramPublish.getId(),
+                telegramPublish);
+        });
     }
 
     protected GetQrCodeResponse getQrCode(Customer customer) {
@@ -177,7 +188,7 @@ public class TelegramCustomerService {
 
             customer.setQrCode(code);
             customer.setQrCodeExpiresAt(Instant.now().plusSeconds(300));
-            customer = customerRepository.save(customer);
+            customer = customerService.save(customer);
         }
 
         final byte[] image = qrCodeUtils.generateQRCodeImage(customer.getQrCode());

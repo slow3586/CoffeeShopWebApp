@@ -1,7 +1,9 @@
 package com.slow3586.drinkshop.mainservice;
 
+import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
+import com.slow3586.drinkshop.mainservice.service.WorkerService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +24,7 @@ import java.io.IOException;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
-    CustomerRepository customerRepository;
-    WorkerRepository workerRepository;
+    WorkerService workerService;
 
     @Override
     protected void doFilterInternal(
@@ -31,17 +32,19 @@ public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
         @NonNull final HttpServletResponse response,
         @NonNull final FilterChain filterChain
     ) throws ServletException, IOException {
-        String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            authorization = authorization.substring(7);
-        }
-        new UsernamePasswordAuthenticationToken(
-            uuid,
-            null,
-            AuthorityUtils.createAuthorityList("user"));
-        new UsernamePasswordAuthenticationToken(
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
             null,
             null);
+
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            Worker worker = workerService.token(authorizationHeader.substring("Bearer ".length()));
+            token = new UsernamePasswordAuthenticationToken(
+                worker.getName(),
+                null,
+                AuthorityUtils.createAuthorityList(worker.getRole()));
+        }
+
         SecurityContextHolder.getContext().setAuthentication(token);
         filterChain.doFilter(request, response);
     }

@@ -1,6 +1,7 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 import com.slow3586.drinkshop.api.mainservice.LoginRequest;
+import com.slow3586.drinkshop.api.mainservice.WorkerTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
 import io.jsonwebtoken.Claims;
@@ -9,6 +10,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,14 +25,14 @@ import java.util.Date;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@RestController("api/worker")
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class WorkerService {
     WorkerRepository workerRepository;
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
 
-    @PostMapping("login")
+    @SendTo
+    @KafkaListener(topics = WorkerTopics.REQUEST_LOGIN)
     public String login(LoginRequest loginRequest) {
         Worker worker = workerRepository.findByPhoneNumber(loginRequest.getPhone());
 
@@ -50,8 +53,9 @@ public class WorkerService {
             .compact();
     }
 
-    @PostMapping("token")
-    public String token(String token) {
+    @SendTo
+    @KafkaListener(topics = WorkerTopics.REQUEST_TOKEN)
+    public Worker token(String token) {
         Claims claims = Jwts.parser()
             .verifyWith(secretKey)
             .build()
@@ -68,6 +72,6 @@ public class WorkerService {
             throw new IllegalArgumentException("Token expired!");
         }
 
-        return claims.getSubject();
+        return worker;
     }
 }

@@ -40,11 +40,13 @@ public class ProductController {
     @GetMapping("/all")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
     public List<Product> all() {
-        return productRepository.findAll()
+        return productRepository.findAll().stream()
             .map(p -> p.setProductInventoryList(
-                productInventoryRepository.findByProductId(p.getId())
+                productInventoryRepository.findByProductId(p.getId()).stream()
                     .map(pi -> pi.setProductInventoryType(
                         productInventoryTypeRepository.findById(
-                            pi.getProductInventoryTypeId()).get()))));
+                            pi.getProductInventoryTypeId()).get()))
+                    .toList()))
+            .toList();
     }
 }

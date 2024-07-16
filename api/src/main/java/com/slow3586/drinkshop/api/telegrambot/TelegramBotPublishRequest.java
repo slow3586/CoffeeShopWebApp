@@ -5,15 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
-@Builder
+@Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TelegramBotPublishRequest {
-    List<String> chatIds;
+    UUID customerId;
+    UUID customerGroupId;
     String text;
 }

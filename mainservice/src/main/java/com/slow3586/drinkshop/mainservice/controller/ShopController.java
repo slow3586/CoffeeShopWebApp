@@ -3,6 +3,7 @@ package com.slow3586.drinkshop.mainservice.controller;
 
 import com.slow3586.drinkshop.api.mainservice.entity.Shop;
 import com.slow3586.drinkshop.mainservice.repository.ShopRepository;
+import com.slow3586.drinkshop.mainservice.service.InventoryService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,17 +26,19 @@ import java.util.UUID;
 public class ShopController {
     ShopRepository shopRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
+    private final InventoryService inventoryService;
 
     @GetMapping("findById/{id}")
     public Shop findById(@PathVariable UUID id) {
         return shopRepository.findById(id).get();
     }
 
-    @GetMapping("all")
+    @GetMapping("findAll")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
-    public List<Shop> all() {
-        return shopRepository.findAll()
+    public List<Shop> findAll() {
+        return shopRepository.findAll().stream()
             .map(shop -> shop.setShopInventoryList(
-                shopInventoryRepository.findAllByShopId(shop.getId())));
+                inventoryService.findAllByShopId(shop.getId())))
+            .toList();
     }
 }

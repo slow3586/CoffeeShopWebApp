@@ -1,9 +1,11 @@
 package com.slow3586.drinkshop.api.mainservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
@@ -25,6 +27,9 @@ public class Worker {
     String telegramId;
 
     String phoneNumber;
+    String role;
+    @JsonIgnore
+    @ToString.Exclude
     String password;
 
     String blockedReason;
