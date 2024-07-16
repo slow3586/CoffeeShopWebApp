@@ -1,9 +1,7 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api.mainservice.topic;
 
 public final class PaymentTopics {
-    private static final String ERROR = ".error";
     private static final String NAME = "payment";
-    private static final String TRANSACTION = ".transaction";
     private static final String REQUEST = ".request";
     private static final String STATUS = ".status";
     public final static String REQUEST_SYSTEM = NAME + REQUEST + ".system";

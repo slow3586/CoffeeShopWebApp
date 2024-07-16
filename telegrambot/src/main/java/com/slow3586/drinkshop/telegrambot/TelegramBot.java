@@ -1,7 +1,7 @@
 package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.TelegramServiceClient;
+import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

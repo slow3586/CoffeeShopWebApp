@@ -1,8 +1,6 @@
 package com.slow3586.drinkshop.mainservice;
 
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
-import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
-import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
 import com.slow3586.drinkshop.mainservice.service.WorkerService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,6 +1,6 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
+import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
@@ -101,27 +101,6 @@ public class TelegramWorkerService {
         //endregion
 
         return response;
-    }
-
-    @Scheduled(fixedRate = 1000)
-    @Async
-    public void sendPublishRequestsToBot() {
-        telegramPublishRepository.findToSend()
-            .forEach(entity -> {
-                try {
-                    telegramBotClient.publish(
-                        TelegramBotPublishRequest.builder()
-                            .chatIds(List.of(entity.getCustomerTelegramId()))
-                            .text(entity.getText())
-                            .build());
-                    entity.setSentAt(Instant.now());
-                } catch (Exception e) {
-                    entity.setAttempts(entity.getAttempts() + 1);
-                    entity.setError(entity.getError() + "; " + e.getMessage());
-                    entity.setLastAttemptAt(Instant.now());
-                }
-                telegramPublishRepository.save(entity);
-            });
     }
 
     protected GetQrCodeResponse getQrCode(Worker worker) {

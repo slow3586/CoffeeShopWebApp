@@ -1,13 +1,14 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
-import com.slow3586.drinkshop.api.mainservice.PromoTopics;
-import com.slow3586.drinkshop.api.mainservice.TelegramProcessResponse;
-import com.slow3586.drinkshop.api.mainservice.TelegramTopics;
+import com.slow3586.drinkshop.api.mainservice.TelegramPublishMessage;
+import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Promo;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.TelegramTopics;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
@@ -22,8 +23,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,7 +51,7 @@ public class TelegramCustomerService {
     QrCodeUtils qrCodeUtils;
     KafkaTemplate<UUID, Object> kafkaTemplate;
     CustomerService customerService;
-    private final CustomerRepository customerRepository;
+    CustomerRepository customerRepository;
 
     @KafkaListener(topics = TelegramTopics.CUSTOMER_PROCESS_REQUEST)
     public TelegramProcessResponse process(@RequestBody TelegramProcessRequest request) {
@@ -170,13 +170,18 @@ public class TelegramCustomerService {
             .setText(promo.getText()));
     }
 
+    @Transactional(transactionManager = "kafkaTransactionManager")
     @KafkaListener(topics = TelegramTopics.CUSTOMER_PUBLISH_CREATED)
     public void processPublishCreated(TelegramPublish telegramPublish) {
-        customerRepository.findAll().forEach(customer -> {
+        customerRepository.findAll().forEach(customer ->
             kafkaTemplate.send(TelegramTopics.CUSTOMER_PUBLISH_BOT,
                 telegramPublish.getId(),
-                telegramPublish);
-        });
+                new TelegramPublishMessage()
+                    .setId(UUID.randomUUID())
+                    .setText(telegramPublish.getText())
+                    .setStatus("CREATED")
+                    .setTelegramId(customer.getTelegramId())
+                    .setTelegramPublishId(telegramPublish.getId())));
     }
 
     protected GetQrCodeResponse getQrCode(Customer customer) {

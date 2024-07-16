@@ -1,10 +1,10 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
-import com.slow3586.drinkshop.api.mainservice.PaymentSystemUpdate;
-import com.slow3586.drinkshop.api.mainservice.PaymentTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.PaymentSystemUpdate;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Payment;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.mainservice.repository.PaymentRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
@@ -15,7 +15,6 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -37,24 +35,22 @@ public class PaymentService {
     KafkaTemplate<UUID, Object> kafkaTemplate;
     StreamsBuilder streamsBuilder;
     OrderService orderService;
-    TransactionTemplate transactionTemplate;
-    private final KafkaAdmin kafkaAdmin;
 
     @PostConstruct
-    public void orderCreatedStream() {
+    public void processOrder() {
         JsonSerde<Order> orderSerde = new JsonSerde<>(Order.class);
-        streamsBuilder.table("order.transaction.customer",
+        streamsBuilder.table(OrderTopics.TRANSACTION_CUSTOMER,
                 Consumed.with(Serdes.String(), orderSerde))
-            .join(streamsBuilder.table("order.transaction.inventory",
+            .join(streamsBuilder.table(OrderTopics.TRANSACTION_INVENTORY,
                     Consumed.with(Serdes.String(), orderSerde)),
                 (a, b) -> a.setOrderItemList(b.getOrderItemList()))
-            .join(streamsBuilder.table("order.transaction.shop",
+            .join(streamsBuilder.table(OrderTopics.TRANSACTION_SHOP,
                     Consumed.with(Serdes.String(), orderSerde)),
                 (a, b) -> a.setShop(b.getShop()))
             .toStream()
             .foreach((k, order) -> {
                 try {
-                    transactionTemplate.executeWithoutResult((status) -> {
+                    kafkaTemplate.executeInTransaction((status) -> {
                         final int price = order.getOrderItemList().stream()
                             .mapToInt(i -> i.getQuantity() * i.getProduct().getPrice())
                             .sum();
@@ -82,6 +78,8 @@ public class PaymentService {
                         kafkaTemplate.send(OrderTopics.TRANSACTION_PAYMENT,
                             order.getId(),
                             order);
+
+                        return true;
                     });
                 } catch (Exception e) {
                     kafkaTemplate.send(OrderTopics.TRANSACTION_PAYMENT_ERROR,

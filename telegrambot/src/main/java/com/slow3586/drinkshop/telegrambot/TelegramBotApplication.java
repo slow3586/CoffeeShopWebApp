@@ -11,6 +11,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -21,6 +22,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @ComponentScan(value = {"com.slow3586.drinkshop.*"})
 @EnableFeignClients(basePackages = "com.slow3586.drinkshop.*")
+@EnableKafka
 @Slf4j
 public class TelegramBotApplication {
     TelegramBot telegramBot;

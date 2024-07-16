@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api.mainservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

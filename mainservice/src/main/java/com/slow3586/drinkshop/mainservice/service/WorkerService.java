@@ -1,8 +1,8 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.LoginRequest;
-import com.slow3586.drinkshop.api.mainservice.WorkerTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.LoginRequest;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
+import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
 import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -14,8 +14,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;

@@ -1,11 +1,11 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.OrderRequest;
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
-import com.slow3586.drinkshop.api.mainservice.PaymentTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.OrderRequest;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.OrderItem;
 import com.slow3586.drinkshop.api.mainservice.entity.Payment;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.mainservice.repository.OrderItemRepository;
 import com.slow3586.drinkshop.mainservice.repository.OrderRepository;
 import lombok.AccessLevel;
@@ -30,15 +30,14 @@ import java.util.UUID;
 public class OrderService {
     OrderRepository orderRepository;
     OrderItemRepository orderItemRepository;
-    TransactionTemplate transactionTemplate;
     KafkaTemplate<UUID, Object> kafkaTemplate;
     CustomerService customerService;
     ShopService shopService;
     ProductService productService;
 
-    @KafkaListener(topics = "order.request.create")
+    @KafkaListener(topics = OrderTopics.REQUEST_CREATE)
     @Transactional(transactionManager = "transactionManager")
-    @SendTo
+    @SendTo(OrderTopics.REQUEST_CREATE_RESPONSE)
     public UUID createOrder(OrderRequest orderRequest) {
         final Order order =
             orderRepository.save(
@@ -64,9 +63,9 @@ public class OrderService {
         return order.getId();
     }
 
-    @KafkaListener(topics = "order.request.cancel")
+    @KafkaListener(topics = OrderTopics.REQUEST_CANCEL)
     @Transactional(transactionManager = "transactionManager")
-    @SendTo
+    @SendTo(OrderTopics.REQUEST_CANCEL_RESPONSE)
     public UUID cancelOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId).get();
         order.setStatus("CANCELLED");
@@ -75,9 +74,9 @@ public class OrderService {
         return order.getId();
     }
 
-    @KafkaListener(topics = "order.request.complete")
+    @KafkaListener(topics = OrderTopics.REQUEST_COMPLETE)
     @Transactional(transactionManager = "transactionManager")
-    @SendTo
+    @SendTo(OrderTopics.REQUEST_COMPLETE_RESPONSE)
     public UUID completeOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId).get();
         if (!order.getStatus().equals("IN_PROGRESS")) {
@@ -122,7 +121,7 @@ public class OrderService {
             orderRepository.findById(payment.getOrderId()).get()
                 .setStatus("PAID"));
 
-        kafkaTemplate.send(OrderTopics.STATUS_PAID, order.getId());
+        kafkaTemplate.send(OrderTopics.STATUS_PAID, payment.getId());
     }
 
     public List<Order> findAllActiveByShopId(UUID shopId) {

@@ -1,11 +1,11 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
-import com.slow3586.drinkshop.api.mainservice.TelegramTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.TelegramTopics;
 import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -48,30 +48,14 @@ public class CustomerService {
                     .flatMap(customerRepository::findById)
                     .get()));
         } catch (Exception e) {
-            log.error("#processOrder: {}", e.getMessage(), e);
+            log.error("CustomerService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(OrderTopics.TRANSACTION_CUSTOMER_ERROR,
                 order.getId(),
                 e.getMessage());
         }
     }
 
-    @KafkaListener(topics = TelegramTopics.TRANSACTION_CREATED)
-    public void processTelegramPublish(TelegramPublish telegramPublish) {
-        try {
-            kafkaTemplate.send(TelegramTopics.TRANSACTION_CUSTOMER,
-                telegramPublish.getId(),
-                telegramPublish.setCustomer(Optional.ofNullable(telegramPublish.getCustomerId())
-                    .flatMap(customerRepository::findById)
-                    .get()));
-        } catch (Exception e) {
-            log.error("#processTelegramPublish: {}", e.getMessage(), e);
-            kafkaTemplate.send(TelegramTopics.TRANSACTION_CUSTOMER_ERROR,
-                telegramPublish.getId(),
-                e.getMessage());
-        }
-    }
-
     public Customer findByQrCode(String qrCode) {
-        return customerRepository.findByQrCodeAndQrCodeExpiresAtAfter(qrCode, Instant.now());
+        return customerRepository.findByQrCodeAndQrCodeExpiresAtAfter(qrCode, Instant.now()).get();
     }
 }

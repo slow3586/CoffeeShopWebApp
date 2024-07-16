@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api.mainservice.topic;
 
 public final class PromoTopics {
     private static final String ERROR = ".error";

@@ -8,11 +8,11 @@ CREATE TABLE customer
     telegram_id        TEXT,
     name               TEXT,
     points             INT,
+    points_reserved    INT,
     phone_number       TEXT,
     qr_code            TEXT,
     qr_code_expires_at TIMESTAMP WITHOUT TIME ZONE,
     blocked_reason     TEXT,
-    points_reserved    INT,
     created_at         TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at   TIMESTAMP WITHOUT TIME ZONE
 );
@@ -26,14 +26,14 @@ CREATE TABLE "order"
     rating           INTEGER,
     status           TEXT,
     use_points       BOOLEAN,
+    created_at       TIMESTAMP WITHOUT TIME ZONE,
     paid_at          TIMESTAMP WITHOUT TIME ZONE,
     completed_at     TIMESTAMP WITHOUT TIME ZONE,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
     last_modified_at TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:3
-CREATE TABLE customer_order_item
+CREATE TABLE order_item
 (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id         UUID,

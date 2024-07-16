@@ -1,6 +1,7 @@
-package com.slow3586.drinkshop.api.mainservice.entity;
+package com.slow3586.drinkshop.api.mainservice;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,37 +11,17 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Table(name = "order")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class Order {
-    @Id
+public class TelegramPublishMessage {
     UUID id;
-    UUID customerId;
-    UUID shopId;
-
+    UUID telegramPublishId;
+    String telegramId;
+    String text;
     String status;
-
-    Instant createdAt;
-    Instant paidAt;
-    Instant completedAt;
-
-    boolean usePoints;
-
-    @Transient
-    Customer customer;
-    @Transient
-    Shop shop;
-    @Transient
-    List<OrderItem> orderItemList;
-    @Transient
-    Payment paymentMoney;
-    @Transient
-    Payment paymentPoints;
 }

@@ -1,9 +1,9 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.ShopInventory;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.mainservice.repository.ShopInventoryRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -53,12 +53,26 @@ public class InventoryService {
                         return productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
                     })));
         } catch (Exception e) {
-            log.error("#processOrder: {}", e.getMessage(), e);
+            log.error("InventoryService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(
                 OrderTopics.TRANSACTION_INVENTORY_ERROR,
                 order.getId(),
                 e.getMessage());
         }
+    }
+
+    @KafkaListener(topics = {OrderTopics.STATUS_ERROR, OrderTopics.STATUS_CANCELLED})
+    public void revertOrder(Order order) {
+        order.getOrderItemList()
+            .forEach(item -> item.getProduct().getProductInventoryList()
+                .forEach(productInventory -> {
+                    ShopInventory entity = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                        order.getShopId(),
+                        productInventory.getProductInventoryTypeId()
+                    ).get();
+                    shopInventoryRepository.save(
+                        entity.setReserved(entity.getReserved() - productInventory.getQuantity() * item.getQuantity()));
+                }));
     }
 
     public List<ShopInventory> findAllByShopId(UUID id) {

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Table(name = "customer_order_item")
+@Table(name = "order_item")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)

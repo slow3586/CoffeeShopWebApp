@@ -19,5 +19,5 @@ public interface CustomerRepository extends ListCrudRepository<Customer, UUID> {
     @Query("SELECT id, telegram_id FROM customer c WHERE c.phone_number IS NOT NULL AND c.blocked_reason IS NULL")
     List<Customer> findValidForPromos();
 
-    Customer findByQrCodeAndQrCodeExpiresAtAfter(String qrCode, Instant qrCodeExpiresAt);
+    Optional<Customer> findByQrCodeAndQrCodeExpiresAtAfter(String qrCode, Instant qrCodeExpiresAt);
 }

@@ -1,9 +1,9 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Product;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.mainservice.repository.ProductGroupRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductInventoryRepository;
 import com.slow3586.drinkshop.mainservice.repository.ProductInventoryTypeRepository;

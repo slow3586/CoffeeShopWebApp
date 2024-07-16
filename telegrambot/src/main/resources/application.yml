@@ -4,6 +4,20 @@ spring:
   main:
     banner-mode: off
     web-application-type: servlet
+  kafka:
+    bootstrap-servers: 'localhost:9091'
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      transaction-id-prefix: 'drinkshop-mainservice'
+    streams:
+      application-id: 'drinkshop-mainservice'
+      replication-factor: 1
+      properties:
+        commit.interval.ms: 2000
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        processing.guarantee: exactly_once_v2
 
 app:
   client:

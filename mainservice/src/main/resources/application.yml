@@ -26,6 +26,7 @@ spring:
     consumer:
       properties:
         spring.json.trusted.packages: "*"
+      group-id: 'drinkshop-mainservice'
     streams:
       application-id: 'drinkshop-mainservice'
       replication-factor: 1
@@ -36,6 +37,7 @@ spring:
         spring.json.trusted.packages: "*"
         processing.guarantee: exactly_once_v2
 
+SECRET_KEY: 12412561235231562356234532542354623546235462
 
 app:
   client:

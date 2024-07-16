@@ -1,7 +1,7 @@
 package com.slow3586.drinkshop.mainservice.controller;
 
-import com.slow3586.drinkshop.api.mainservice.LoginRequest;
-import com.slow3586.drinkshop.api.mainservice.WorkerTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.LoginRequest;
+import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
 import com.slow3586.drinkshop.mainservice.service.WorkerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class WorkerController {
     WorkerService workerService;
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
-    ReplyingKafkaTemplate<UUID, Object, String> replyingKafkaTemplate;
+    ReplyingKafkaTemplate<UUID, Object, Object> replyingKafkaTemplate;
 
     @PostMapping("login")
     public CompletableFuture<String> login(LoginRequest loginRequest) {
@@ -34,6 +34,7 @@ public class WorkerController {
             new ProducerRecord<>(
                 WorkerTopics.REQUEST_LOGIN, loginRequest))
             .thenApply(ConsumerRecord::value)
+            .thenApply(o -> ((String) o))
             .toCompletableFuture();
     }
 
@@ -43,6 +44,7 @@ public class WorkerController {
                 new ProducerRecord<>(
                     WorkerTopics.REQUEST_TOKEN, token))
             .thenApply(ConsumerRecord::value)
+            .thenApply(o -> ((String) o))
             .toCompletableFuture();
     }
 }

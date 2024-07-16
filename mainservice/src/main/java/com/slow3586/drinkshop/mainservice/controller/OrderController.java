@@ -1,10 +1,8 @@
 package com.slow3586.drinkshop.mainservice.controller;
 
-import com.slow3586.drinkshop.api.mainservice.OrderRequest;
-import com.slow3586.drinkshop.api.mainservice.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.OrderRequest;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
-import com.slow3586.drinkshop.mainservice.repository.OrderItemRepository;
-import com.slow3586.drinkshop.mainservice.repository.OrderRepository;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.mainservice.service.CustomerService;
 import com.slow3586.drinkshop.mainservice.service.OrderService;
 import com.slow3586.drinkshop.mainservice.service.ProductService;
@@ -37,8 +35,7 @@ import java.util.concurrent.CompletableFuture;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class OrderController {
     OrderService orderService;
-    TransactionTemplate transactionTemplate;
-    ReplyingKafkaTemplate<UUID, Object, UUID> replyingKafkaTemplate;
+    ReplyingKafkaTemplate<UUID, Object, Object> replyingKafkaTemplate;
     CustomerService customerService;
     ShopService shopService;
     ProductService productService;
@@ -55,6 +52,7 @@ public class OrderController {
         return replyingKafkaTemplate.sendAndReceive(
                 new ProducerRecord<>(OrderTopics.REQUEST_CREATE, orderRequest))
             .thenApply(ConsumerRecord::value)
+            .thenApply(o -> ((UUID) o))
             .toCompletableFuture();
     }
 
@@ -64,6 +62,7 @@ public class OrderController {
         return replyingKafkaTemplate.sendAndReceive(
                 new ProducerRecord<>(OrderTopics.REQUEST_COMPLETE, uuid))
             .thenApply(ConsumerRecord::value)
+            .thenApply(o -> ((UUID) o))
             .toCompletableFuture();
     }
 }

@@ -1,8 +1,8 @@
 package com.slow3586.drinkshop.mainservice.controller;
 
 
-import com.slow3586.drinkshop.api.mainservice.PaymentSystemUpdate;
-import com.slow3586.drinkshop.api.mainservice.PaymentTopics;
+import com.slow3586.drinkshop.api.mainservice.dto.PaymentSystemUpdate;
+import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

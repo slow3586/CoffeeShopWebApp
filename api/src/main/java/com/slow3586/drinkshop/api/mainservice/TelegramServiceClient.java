@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.api.mainservice;
 
+import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;

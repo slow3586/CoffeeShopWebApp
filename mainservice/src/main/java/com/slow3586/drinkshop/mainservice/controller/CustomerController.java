@@ -2,7 +2,6 @@ package com.slow3586.drinkshop.mainservice.controller;
 
 
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
-import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.service.CustomerService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @RestController

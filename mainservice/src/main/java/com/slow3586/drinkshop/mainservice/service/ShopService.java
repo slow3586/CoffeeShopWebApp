@@ -1,9 +1,10 @@
 package com.slow3586.drinkshop.mainservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.PromoTopics;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Shop;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
 import com.slow3586.drinkshop.mainservice.repository.ShopRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,10 @@ public class ShopService {
     ShopRepository shopRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics =  PromoTopics.TRANSACTION_CREATED)
+    @KafkaListener(topics =  OrderTopics.TRANSACTION_CREATED)
     public void processOrder(Order order) {
         try {
-            kafkaTemplate.send( PromoTopics.TRANSACTION_SHOP,
+            kafkaTemplate.send( OrderTopics.TRANSACTION_SHOP,
                 order.getId(),
                 order.setShop(Optional.ofNullable(order.getShopId())
                     .flatMap(c -> shopRepository.findById(order.getShopId()))
@@ -37,7 +38,7 @@ public class ShopService {
         } catch (Exception e) {
             log.error("ShopService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(
-                PromoTopics.TRANSACTION_SHOP_ERROR,
+                OrderTopics.TRANSACTION_SHOP_ERROR,
                 order.getId(),
                 e.getMessage());
         }
