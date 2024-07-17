@@ -8,17 +8,24 @@ import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.mainservice.repository.OrderItemRepository;
 import com.slow3586.drinkshop.mainservice.repository.OrderRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Suppressed;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -34,8 +41,9 @@ public class OrderService {
     CustomerService customerService;
     ShopService shopService;
     ProductService productService;
+    StreamsBuilder streamsBuilder;
 
-    @KafkaListener(topics = OrderTopics.REQUEST_CREATE)
+    @KafkaListener(topics = OrderTopics.REQUEST_CREATE, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     @SendTo(OrderTopics.REQUEST_CREATE_RESPONSE)
     public UUID createOrder(OrderRequest orderRequest) {
@@ -63,65 +71,135 @@ public class OrderService {
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.REQUEST_CANCEL)
+    @KafkaListener(topics = OrderTopics.REQUEST_CANCEL, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     @SendTo(OrderTopics.REQUEST_CANCEL_RESPONSE)
     public UUID cancelOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId).get();
-        order.setStatus("CANCELLED");
-        orderRepository.save(order);
-        kafkaTemplate.send(OrderTopics.STATUS_CANCELLED, orderId);
-        return order.getId();
-    }
-
-    @KafkaListener(topics = OrderTopics.REQUEST_COMPLETE)
-    @Transactional(transactionManager = "transactionManager")
-    @SendTo(OrderTopics.REQUEST_COMPLETE_RESPONSE)
-    public UUID completeOrder(UUID orderId) {
-        Order order = orderRepository.findById(orderId).get();
-        if (!order.getStatus().equals("IN_PROGRESS")) {
+        if (!order.getStatus().equals("AWAITING_PAYMENT")) {
             throw new IllegalStateException("Order status is not in IN_PROGRESS");
         }
+        order.setStatus("CANCELLED");
+        order = orderRepository.save(order);
+        kafkaTemplate.send(OrderTopics.STATUS_COMPLETED, order.getId(), order);
+        return order.getId();
+    }
+
+    @KafkaListener(topics = OrderTopics.REQUEST_COMPLETED, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
+    @Transactional(transactionManager = "transactionManager")
+    @SendTo(OrderTopics.REQUEST_COMPLETED_RESPONSE)
+    public UUID completeOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId).get();
+        if (!order.getStatus().equals("PAID")) {
+            throw new IllegalStateException("Order status is not in PAID");
+        }
         order.setStatus("COMPLETED");
-        orderRepository.save(order);
-        kafkaTemplate.send(OrderTopics.STATUS_COMPLETED, orderId);
+        order = orderRepository.save(order);
+        kafkaTemplate.send(OrderTopics.STATUS_COMPLETED, order.getId(), order);
 
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_PAYMENT)
+    @PostConstruct
+    public void orderStreams() {
+        JsonSerde<Order> orderSerde = new JsonSerde<>(Order.class);
+        JsonSerde<Payment> paymentSerde = new JsonSerde<>(Payment.class);
+
+        KTable<UUID, Order> orderCreatedTable = streamsBuilder.table(
+            OrderTopics.TRANSACTION_CREATED,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Order> orderPaymentTable = streamsBuilder.table(
+            OrderTopics.TRANSACTION_PAYMENT,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Order> orderPaidTable = streamsBuilder.table(
+            OrderTopics.TRANSACTION_PAID,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Order> orderCompleteTable = streamsBuilder.table(
+            OrderTopics.TRANSACTION_COMPLETED,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Order> orderCancelledStatus = streamsBuilder.table(
+            OrderTopics.STATUS_CANCELLED,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Order> orderCompletedStatus = streamsBuilder.table(
+            OrderTopics.STATUS_COMPLETED,
+            Consumed.with(Serdes.UUID(), orderSerde));
+        KTable<UUID, Payment> paidPaymentTable = streamsBuilder.table(PaymentTopics.STATUS_PAID,
+            Consumed.with(Serdes.UUID(), paymentSerde));
+
+        // CREATE TIMEOUT
+        orderCreatedTable
+            .suppress(Suppressed.untilTimeLimit(Duration.ofSeconds(10), null))
+            .leftJoin(orderPaymentTable, (a, b) -> b)
+            .filter((k, v) -> v == null)
+            .mapValues(v -> v.setError("TIMEOUT_CREATE"))
+            .toStream()
+            .to(OrderTopics.TRANSACTION_ERROR);
+
+        // PAYMENT RECEIVED
+        orderPaymentTable
+            .join(paidPaymentTable, Order::setPayment)
+            .toStream()
+            .to(OrderTopics.TRANSACTION_PAID);
+
+        // PAYMENT TIMEOUT
+        orderPaymentTable
+            .suppress(Suppressed.untilTimeLimit(Duration.ofSeconds(60), null))
+            .leftJoin(paidPaymentTable, Order::setPayment)
+            .filter((k, v) -> v.getPayment() == null)
+            .mapValues(v -> v.setError("TIMEOUT_PAYMENT"))
+            .toStream()
+            .to(OrderTopics.TRANSACTION_ERROR);
+
+        // COMPLETE RECEIVED
+        orderPaymentTable
+            .join(orderCompletedStatus, (a, b) -> a)
+            .toStream()
+            .to(OrderTopics.TRANSACTION_COMPLETED);
+
+        // COMPLETE TIMEOUT
+        orderPaidTable
+            .suppress(Suppressed.untilTimeLimit(Duration.ofMinutes(30), null))
+            .leftJoin(orderCompletedStatus, (a, b) -> a.setCompletedAt(Instant.now()))
+            .filter((k, v) -> v.getCompletedAt() == null)
+            .mapValues(v -> v.setError("TIMEOUT_COMPLETED"))
+            .toStream()
+            .to(OrderTopics.TRANSACTION_ERROR);
+    }
+
+    @KafkaListener(topics = OrderTopics.TRANSACTION_PUBLISH, groupId = "orderservice")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderAwaitingPayment(Order order) {
-        orderRepository.save(
-            orderRepository.findById(order.getId()).get()
-                .setStatus("AWAITING_PAYMENT"));
-
-        kafkaTemplate.send(OrderTopics.STATUS_AWAITINGPAYMENT, order.getId());
+        try {
+            orderRepository.save(order.setStatus("AWAITING_PAYMENT"));
+        } catch (Exception e) {
+            kafkaTemplate.send(
+                OrderTopics.TRANSACTION_ERROR,
+                order.getId(),
+                order.setError(e.getMessage()));
+        }
     }
 
-    @KafkaListener(topics = {
-        OrderTopics.TRANSACTION_CUSTOMER_ERROR,
-        OrderTopics.TRANSACTION_INVENTORY_ERROR,
-        OrderTopics.TRANSACTION_SHOP_ERROR,
-        OrderTopics.TRANSACTION_PRODUCT_ERROR,
-        OrderTopics.TRANSACTION_PAYMENT_ERROR,
-    })
+    @KafkaListener(topics = OrderTopics.TRANSACTION_PAID, groupId = "orderservice")
+    @Transactional(transactionManager = "transactionManager")
+    public void processOrderPaid(Order order) {
+        try {
+            orderRepository.save(order.setStatus("PAID"));
+        } catch (Exception e) {
+            kafkaTemplate.send(
+                OrderTopics.TRANSACTION_ERROR,
+                order.getId(),
+                e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = {OrderTopics.TRANSACTION_ERROR}, groupId = "orderservice")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderError(Order order) {
-        Order entity = orderRepository.findById(order.getId()).get();
-        entity.setStatus("ERROR");
-        orderRepository.save(entity);
-        kafkaTemplate.send(OrderTopics.STATUS_ERROR, order.getId());
-    }
-
-    @KafkaListener(topics = PaymentTopics.STATUS_PAID)
-    @Transactional(transactionManager = "transactionManager")
-    public void processPaymentPaid(Payment payment) {
-        orderRepository.save(
-            orderRepository.findById(payment.getOrderId()).get()
-                .setStatus("PAID"));
-
-        kafkaTemplate.send(OrderTopics.STATUS_PAID, payment.getId());
+        try {
+            orderRepository.save(order.setStatus("ERROR"));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public List<Order> findAllActiveByShopId(UUID shopId) {

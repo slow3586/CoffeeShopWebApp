@@ -23,7 +23,7 @@ public class TelegramPublish {
     UUID id;
     String telegramBotId;
     UUID customerId;
-    UUID customerGroupId;
+    //UUID customerGroupId;
     String text;
     String status;
     Instant sentAt;

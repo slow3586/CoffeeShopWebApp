@@ -27,12 +27,14 @@ spring:
       properties:
         spring.json.trusted.packages: "*"
       group-id: 'drinkshop-mainservice'
+      key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
     streams:
-      application-id: 'drinkshop-mainservice'
+      application-id: 'drinkshop-mainservice-streams'
       replication-factor: 1
       properties:
         commit.interval.ms: 2000
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$UUIDSerde
         default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
         spring.json.trusted.packages: "*"
         processing.guarantee: exactly_once_v2

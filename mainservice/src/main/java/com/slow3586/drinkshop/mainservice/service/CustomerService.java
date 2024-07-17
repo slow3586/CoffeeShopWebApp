@@ -39,19 +39,19 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_CREATED)
+    @KafkaListener(topics = OrderTopics.TRANSACTION_CREATED, groupId = "customerservice")
     public void processOrder(Order order) {
         try {
             kafkaTemplate.send(OrderTopics.TRANSACTION_CUSTOMER,
                 order.getId(),
                 order.setCustomer(Optional.ofNullable(order.getCustomerId())
                     .flatMap(customerRepository::findById)
-                    .get()));
+                    .orElseThrow()));
         } catch (Exception e) {
             log.error("CustomerService#processOrder: {}", e.getMessage(), e);
-            kafkaTemplate.send(OrderTopics.TRANSACTION_CUSTOMER_ERROR,
+            kafkaTemplate.send(OrderTopics.TRANSACTION_ERROR,
                 order.getId(),
-                e.getMessage());
+                order.setError(e.getMessage()));
         }
     }
 

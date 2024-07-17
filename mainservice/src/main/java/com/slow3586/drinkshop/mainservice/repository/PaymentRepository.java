@@ -7,10 +7,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 @Transactional(transactionManager = "transactionManager")
 public interface PaymentRepository extends ListCrudRepository<Payment, UUID> {
-    List<Payment> findByOrderId(UUID orderId);
+    Optional<Payment> findByOrderId(UUID orderId);
+    boolean existsByOrderId(UUID orderId);
 }

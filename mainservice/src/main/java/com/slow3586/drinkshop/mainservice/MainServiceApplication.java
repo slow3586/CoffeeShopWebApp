@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.mainservice;
 
+import com.slow3586.drinkshop.api.mainservice.KafkaReplyErrorChecker;
 import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
@@ -17,11 +18,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,6 +44,7 @@ import java.util.stream.Stream;
 @SpringBootApplication
 @EnableTransactionManagement
 @EnableFeignClients(basePackages = "com.slow3586.drinkshop.api")
+@ComponentScan(value = {"com.slow3586.drinkshop.*"})
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PROTECTED)
 @EnableKafka
@@ -55,6 +58,7 @@ public class MainServiceApplication {
     @NonFinal
     @Value("${SECRET_KEY}")
     String secretKey;
+    KafkaReplyErrorChecker kafkaReplyErrorChecker;
 
     @Bean
     public JsonSerde<Object> baseJsonSerde() {
@@ -66,15 +70,17 @@ public class MainServiceApplication {
     @Bean
     public ReplyingKafkaTemplate<UUID, Object, Object> kafkaReplyingTemplate(
         ConcurrentKafkaListenerContainerFactory<UUID, Object> kafkaListenerContainerFactory,
-        DefaultKafkaProducerFactory<UUID, Object> defaultKafkaProducerFactory
+        DefaultKafkaProducerFactory<UUID, Object> defaultKafkaProducerFactory,
+        DefaultKafkaConsumerFactory<UUID, Object> defaultKafkaConsumerFactory
     ) {
         kafkaListenerContainerFactory.setReplyTemplate(
             new KafkaTemplate<>(defaultKafkaProducerFactory));
+        kafkaListenerContainerFactory.setConsumerFactory(defaultKafkaConsumerFactory);
 
         ConcurrentMessageListenerContainer<UUID, Object> container =
             kafkaListenerContainerFactory
                 .createContainer(
-                    OrderTopics.REQUEST_COMPLETE_RESPONSE,
+                    OrderTopics.REQUEST_COMPLETED_RESPONSE,
                     OrderTopics.REQUEST_CREATE_RESPONSE);
 
         container.getContainerProperties().setGroupId("drinkshop-mainservice");
@@ -84,6 +90,7 @@ public class MainServiceApplication {
             container);
         template.setSharedReplyTopic(true);
         template.setDefaultReplyTimeout(Duration.ofSeconds(10));
+        template.setReplyErrorChecker(kafkaReplyErrorChecker);
 
         return template;
     }
@@ -102,26 +109,22 @@ public class MainServiceApplication {
     public KafkaAdmin.NewTopics orderTopics() {
         return new KafkaAdmin.NewTopics(Stream.of(
                 OrderTopics.TRANSACTION_CREATED,
-                OrderTopics.TRANSACTION_PAYMENT,
+                OrderTopics.TRANSACTION_PUBLISH,
                 OrderTopics.TRANSACTION_CUSTOMER,
                 OrderTopics.TRANSACTION_SHOP,
                 OrderTopics.TRANSACTION_INVENTORY,
                 OrderTopics.TRANSACTION_PRODUCT,
-                OrderTopics.TRANSACTION_INVENTORY_ERROR,
-                OrderTopics.TRANSACTION_PRODUCT_ERROR,
-                OrderTopics.TRANSACTION_PAYMENT_ERROR,
-                OrderTopics.TRANSACTION_SHOP_ERROR,
-                OrderTopics.TRANSACTION_CUSTOMER_ERROR,
+                OrderTopics.TRANSACTION_PAYMENT,
+                OrderTopics.TRANSACTION_PAID,
+                OrderTopics.TRANSACTION_COMPLETED,
+                OrderTopics.TRANSACTION_ERROR,
                 OrderTopics.REQUEST_CREATE,
-                OrderTopics.REQUEST_COMPLETE,
+                OrderTopics.REQUEST_COMPLETED,
                 OrderTopics.REQUEST_CANCEL,
                 OrderTopics.REQUEST_CREATE_RESPONSE,
-                OrderTopics.REQUEST_COMPLETE_RESPONSE,
+                OrderTopics.REQUEST_COMPLETED_RESPONSE,
                 OrderTopics.REQUEST_CANCEL_RESPONSE,
-                OrderTopics.STATUS_PAID,
-                OrderTopics.STATUS_AWAITINGPAYMENT,
                 OrderTopics.STATUS_COMPLETED,
-                OrderTopics.STATUS_ERROR,
                 OrderTopics.STATUS_CANCELLED
             ).map(t -> TopicBuilder.name(t).build())
             .toList()

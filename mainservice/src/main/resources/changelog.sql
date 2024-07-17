@@ -134,15 +134,12 @@ CREATE TABLE shop_shift
 -- changeset lia:12
 CREATE TABLE telegram_publish
 (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    telegram_id      TEXT,
-    text             TEXT,
-    sent_at          TIMESTAMP WITHOUT TIME ZONE,
-    attempts         INTEGER          DEFAULT 0,
-    error            TEXT,
-    last_attempt_at  TIMESTAMP WITHOUT TIME ZONE,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at TIMESTAMP WITHOUT TIME ZONE
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    telegram_bot_id TEXT,
+    customer_id     UUID,
+    text            TEXT,
+    status          TEXT,
+    sent_at         TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:13
@@ -159,12 +156,13 @@ CREATE TABLE worker
 CREATE TABLE payment
 (
     id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id                  UUID NOT NULL,
-    value                     INT,
-    payment_system_id         TEXT,
-    sent_to_payment_system    BOOLEAN,
+    order_id                  UUID UNIQUE NOT NULL,
+    status                    TEXT,
+    points                    INTEGER,
+    value                     INTEGER,
     sent_to_payment_system_at TIMESTAMP,
-    denied_reason             TEXT,
-    denied_at                 TIMESTAMP
+    check_id                  TEXT,
+    check_received_at         TIMESTAMP,
+    check_note                TEXT
 );
 

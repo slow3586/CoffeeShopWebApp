@@ -22,9 +22,10 @@ public class Payment {
     UUID id;
     UUID orderId;
 
-    String paymentSystem;
+
     String status;
     int value;
+    int points;
 
     Instant sentToPaymentSystemAt;
 

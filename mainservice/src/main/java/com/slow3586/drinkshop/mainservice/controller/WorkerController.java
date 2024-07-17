@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +30,7 @@ public class WorkerController {
     ReplyingKafkaTemplate<UUID, Object, Object> replyingKafkaTemplate;
 
     @PostMapping("login")
+    @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<String> login(LoginRequest loginRequest) {
         return replyingKafkaTemplate.sendAndReceive(
             new ProducerRecord<>(
@@ -39,6 +41,7 @@ public class WorkerController {
     }
 
     @PostMapping("token")
+    @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<String> token(String token) {
         return replyingKafkaTemplate.sendAndReceive(
                 new ProducerRecord<>(

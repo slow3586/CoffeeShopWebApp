@@ -34,13 +34,13 @@ public class Order {
     boolean usePoints;
 
     @Transient
+    String error;
+    @Transient
     Customer customer;
     @Transient
     Shop shop;
     @Transient
     List<OrderItem> orderItemList;
     @Transient
-    Payment paymentMoney;
-    @Transient
-    Payment paymentPoints;
+    Payment payment;
 }

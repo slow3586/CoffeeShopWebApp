@@ -25,7 +25,7 @@ public class PromoService {
 
     @Transactional(transactionManager = "transactionManager")
     @Secured({"ADMIN"})
-    @KafkaListener(topics = PromoTopics.CREATE_REQUEST)
+    @KafkaListener(topics = PromoTopics.CREATE_REQUEST, groupId = "promoservice")
     public void create(@Valid @RequestBody PromoRequest promoRequest) {
         Promo promo = promoRepository.save(
             new Promo()

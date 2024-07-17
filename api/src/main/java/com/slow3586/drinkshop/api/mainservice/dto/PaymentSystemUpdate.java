@@ -8,6 +8,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class PaymentSystemUpdate {
-    UUID paymentId;
+    UUID orderId;
     String status;
+    String checkId;
 }

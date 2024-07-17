@@ -17,16 +17,13 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerde;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("api/payment")
+@Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @Slf4j
@@ -39,17 +36,20 @@ public class PaymentService {
     @PostConstruct
     public void processOrder() {
         JsonSerde<Order> orderSerde = new JsonSerde<>(Order.class);
+
         streamsBuilder.table(OrderTopics.TRANSACTION_CUSTOMER,
-                Consumed.with(Serdes.String(), orderSerde))
+                Consumed.with(Serdes.UUID(), orderSerde))
             .join(streamsBuilder.table(OrderTopics.TRANSACTION_INVENTORY,
-                    Consumed.with(Serdes.String(), orderSerde)),
+                    Consumed.with(Serdes.UUID(), orderSerde)),
                 (a, b) -> a.setOrderItemList(b.getOrderItemList()))
             .join(streamsBuilder.table(OrderTopics.TRANSACTION_SHOP,
-                    Consumed.with(Serdes.String(), orderSerde)),
+                    Consumed.with(Serdes.UUID(), orderSerde)),
                 (a, b) -> a.setShop(b.getShop()))
             .toStream()
             .foreach((k, order) -> {
                 try {
+                    if (paymentRepository.existsByOrderId(order.getId())) {return;}
+
                     kafkaTemplate.executeInTransaction((status) -> {
                         final int price = order.getOrderItemList().stream()
                             .mapToInt(i -> i.getQuantity() * i.getProduct().getPrice())
@@ -58,22 +58,12 @@ public class PaymentService {
                             && order.isUsePoints() ? Math.max(order.getCustomer().getPoints(), price) : 0;
                         final int payInMoney = price - payInPoints;
 
-                        if (payInPoints > 0) {
-                            order.setPaymentPoints(
-                                paymentRepository.save(new Payment()
-                                    .setValue(payInPoints)
-                                    .setPaymentSystem("POINTS")
-                                    .setStatus("CREATED")
-                                    .setOrderId(order.getId())));
-                        }
-                        if (payInMoney > 0) {
-                            order.setPaymentMoney(
-                                paymentRepository.save(new Payment()
-                                    .setValue(payInMoney)
-                                    .setPaymentSystem("MONEY")
-                                    .setStatus("CREATED")
-                                    .setOrderId(order.getId())));
-                        }
+                        order.setPayment(
+                            paymentRepository.save(new Payment()
+                                .setValue(payInMoney)
+                                .setStatus("CREATED")
+                                .setPoints(payInPoints)
+                                .setOrderId(order.getId())));
 
                         kafkaTemplate.send(OrderTopics.TRANSACTION_PAYMENT,
                             order.getId(),
@@ -82,34 +72,40 @@ public class PaymentService {
                         return true;
                     });
                 } catch (Exception e) {
-                    kafkaTemplate.send(OrderTopics.TRANSACTION_PAYMENT_ERROR,
-                        order.getId(),
-                        e.getMessage());
+                    kafkaTemplate.executeInTransaction((status) -> {
+                        log.error("PaymentService#processOrder: {}", e.getMessage(), e);
+                        kafkaTemplate.send(OrderTopics.TRANSACTION_ERROR,
+                            order.getId(),
+                            order.setError(e.getMessage()));
+                        return true;
+                    });
                 }
             });
     }
 
-    @KafkaListener(topics = OrderTopics.STATUS_ERROR)
+    @KafkaListener(topics = OrderTopics.TRANSACTION_ERROR, groupId = "paymentservice")
     @Transactional(transactionManager = "transactionManager")
-    public void orderCancelled(UUID orderId) {
-        paymentRepository.findByOrderId(orderId)
-            .forEach(payment -> {
+    public void orderCancelled(Order order) {
+        paymentRepository.findByOrderId(order.getId())
+            .ifPresent(payment -> {
                 payment.setStatus("ORDER_CANCELLED");
                 paymentRepository.save(payment);
             });
     }
 
-    @KafkaListener(topics = PaymentTopics.REQUEST_SYSTEM_RESPONSE)
+    @KafkaListener(topics = PaymentTopics.REQUEST_SYSTEM_RESPONSE,
+        groupId = "paymentservice",
+        errorHandler = "kafkaListenerErrorHandler")
     public void processUpdate(PaymentSystemUpdate update) {
-        Payment payment = paymentRepository.findById(update.getPaymentId())
-            .get()
-            .setCheckId("checkId")
+        Payment payment = paymentRepository.findByOrderId(update.getOrderId())
+            .orElseThrow()
+            .setCheckId(update.getCheckId())
             .setCheckReceivedAt(Instant.now())
             .setCheckNote("");
 
         kafkaTemplate.send(
             PaymentTopics.STATUS_PAID,
-            payment.getId(),
+            payment.getOrderId(),
             payment);
     }
 

@@ -12,14 +12,14 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("api/shop")
+@Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @Slf4j
@@ -27,7 +27,7 @@ public class ShopService {
     ShopRepository shopRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics =  OrderTopics.TRANSACTION_CREATED)
+    @KafkaListener(topics = OrderTopics.TRANSACTION_CREATED, groupId = "shopservice")
     public void processOrder(Order order) {
         try {
             kafkaTemplate.send( OrderTopics.TRANSACTION_SHOP,
@@ -38,9 +38,9 @@ public class ShopService {
         } catch (Exception e) {
             log.error("ShopService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(
-                OrderTopics.TRANSACTION_SHOP_ERROR,
+                OrderTopics.TRANSACTION_ERROR,
                 order.getId(),
-                e.getMessage());
+                order.setError(e.getMessage()));
         }
     }
 

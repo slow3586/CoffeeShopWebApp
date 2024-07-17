@@ -16,7 +16,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +48,7 @@ public class OrderController {
 
     @PostMapping("create")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
+    @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<UUID> create(@RequestBody @NonNull OrderRequest orderRequest) {
         return replyingKafkaTemplate.sendAndReceive(
                 new ProducerRecord<>(OrderTopics.REQUEST_CREATE, orderRequest))
@@ -58,9 +59,10 @@ public class OrderController {
 
     @PostMapping("complete")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
+    @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<UUID> complete(UUID uuid) {
         return replyingKafkaTemplate.sendAndReceive(
-                new ProducerRecord<>(OrderTopics.REQUEST_COMPLETE, uuid))
+                new ProducerRecord<>(OrderTopics.REQUEST_COMPLETED, uuid))
             .thenApply(ConsumerRecord::value)
             .thenApply(o -> ((UUID) o))
             .toCompletableFuture();

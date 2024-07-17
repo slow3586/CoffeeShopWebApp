@@ -23,10 +23,9 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,8 +36,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("api/telegram/customer")
+@Service
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
@@ -133,7 +131,7 @@ public class TelegramCustomerService {
         TelegramPublish created = telegramPublishRepository.save(new TelegramPublish()
             .setText(publishRequest.getText())
             .setCustomerId(publishRequest.getCustomerId())
-            .setCustomerGroupId(publishRequest.getCustomerGroupId())
+            //.setCustomerGroupId(publishRequest.getCustomerGroupId())
             .setStatus("CREATED"));
 
         kafkaTemplate.send(TelegramTopics.CUSTOMER_PUBLISH_CREATED,
@@ -141,7 +139,7 @@ public class TelegramCustomerService {
             created);
     }
 
-    @KafkaListener(topics = OrderTopics.STATUS_AWAITINGPAYMENT)
+    @KafkaListener(topics = OrderTopics.TRANSACTION_PAYMENT)
     public void processOrder(Order order) {
         this.processPublishRequest(new TelegramBotPublishRequest()
             .setCustomerId(order.getCustomerId())
@@ -155,12 +153,16 @@ public class TelegramCustomerService {
                         + t.getQuantity() * t.getProduct().getPrice()
                         + "Р")
                 .collect(Collectors.joining("\n"))
-                + "\nИтого: " + order.getPaymentMoney().getValue() + "Р\n"
-                + (order.getPaymentPoints() != null
-                ? ("Оплачено баллами: " + order.getPaymentPoints().getValue()
+                + "\nИтого: " + order.getPayment().getValue() + "Р\n"
+                + (order.getPayment().getPoints() > 0
+                ? ("Оплачено баллами: " + order.getPayment().getPoints()
                 + "/"
-                + order.getPaymentMoney().getValue() + order.getPaymentPoints().getValue())
+                + order.getPayment().getValue() + order.getPayment().getPoints())
                 : "")));
+
+        kafkaTemplate.send(OrderTopics.TRANSACTION_PUBLISH,
+            order.getId(),
+            order);
     }
 
     @KafkaListener(topics = PromoTopics.TRANSACTION_CREATED)

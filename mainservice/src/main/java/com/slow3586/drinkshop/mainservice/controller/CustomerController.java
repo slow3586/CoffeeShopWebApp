@@ -23,7 +23,6 @@ import java.util.UUID;
 @Slf4j
 public class CustomerController {
     CustomerService customerService;
-    KafkaTemplate<UUID, Object> kafkaTemplate;
 
     @GetMapping("findById/{id}")
     public Customer findById(@PathVariable UUID id) {

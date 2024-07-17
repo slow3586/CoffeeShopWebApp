@@ -11,14 +11,16 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("api/customer")
+@Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @Slf4j
@@ -26,53 +28,58 @@ public class InventoryService {
     ShopInventoryRepository shopInventoryRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_PRODUCT)
+    @KafkaListener(topics = OrderTopics.TRANSACTION_PRODUCT, groupId = "inventoryservice")
     public void processOrder(Order order) {
         try {
+            order.getOrderItemList().forEach(orderItem ->
+                orderItem.getProduct().getProductInventoryList().forEach(productInventory -> {
+                    final ShopInventory shopInventory =
+                        shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                                order.getShopId(),
+                                productInventory.getProductInventoryTypeId())
+                            .orElseThrow(() -> new IllegalArgumentException("Shop Inventory not found for ShopId: "
+                                + order.getShopId() + " and InventoryId: "
+                                + productInventory.getProductInventoryTypeId()));
+
+                    final int requiredQuantity = productInventory.getQuantity() * orderItem.getQuantity();
+                    final int availableQuantity = shopInventory.getQuantity() - shopInventory.getReserved();
+
+                    if (availableQuantity < requiredQuantity) {
+                        throw new IllegalStateException("Not enough product inventory in shop for order item: "
+                            + orderItem.getId());
+                    }
+
+                    shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
+                    productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
+                }));
             kafkaTemplate.send(OrderTopics.TRANSACTION_INVENTORY,
                 order.getId(),
-                order.getOrderItemList().stream().map(orderItem ->
-                    orderItem.getProduct().getProductInventoryList().stream().map(productInventory -> {
-                        final ShopInventory shopInventory =
-                            shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
-                                    order.getShopId(),
-                                    productInventory.getProductInventoryTypeId())
-                                .orElseThrow(() -> new IllegalArgumentException("Shop Inventory not found for ShopId: "
-                                    + order.getShopId() + " and InventoryId: "
-                                    + productInventory.getProductInventoryTypeId()));
-
-                        final int requiredQuantity = productInventory.getQuantity() * orderItem.getQuantity();
-                        final int availableQuantity = shopInventory.getQuantity() - shopInventory.getReserved();
-
-                        if (availableQuantity < requiredQuantity) {
-                            throw new IllegalStateException("Not enough product inventory in shop for order item: "
-                                + orderItem.getId());
-                        }
-
-                        shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
-                        return productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
-                    })));
+                order);
         } catch (Exception e) {
             log.error("InventoryService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(
-                OrderTopics.TRANSACTION_INVENTORY_ERROR,
+                OrderTopics.TRANSACTION_ERROR,
                 order.getId(),
-                e.getMessage());
+                order.setError(e.getMessage()));
         }
     }
 
-    @KafkaListener(topics = {OrderTopics.STATUS_ERROR, OrderTopics.STATUS_CANCELLED})
+    @KafkaListener(topics = {OrderTopics.TRANSACTION_ERROR}, groupId = "inventoryservice")
     public void revertOrder(Order order) {
-        order.getOrderItemList()
-            .forEach(item -> item.getProduct().getProductInventoryList()
-                .forEach(productInventory -> {
-                    ShopInventory entity = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
-                        order.getShopId(),
-                        productInventory.getProductInventoryTypeId()
-                    ).get();
-                    shopInventoryRepository.save(
-                        entity.setReserved(entity.getReserved() - productInventory.getQuantity() * item.getQuantity()));
-                }));
+        try {
+            order.getOrderItemList()
+                .forEach(item -> item.getProduct().getProductInventoryList()
+                    .forEach(productInventory -> {
+                        ShopInventory entity = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                            order.getShopId(),
+                            productInventory.getProductInventoryTypeId()
+                        ).orElseThrow();
+                        shopInventoryRepository.save(
+                            entity.setReserved(entity.getReserved() - productInventory.getQuantity() * item.getQuantity()));
+                    }));
+        } catch (Exception e) {
+            log.error("#revertOrder: {}", e.getMessage(), e);
+        }
     }
 
     public List<ShopInventory> findAllByShopId(UUID id) {
