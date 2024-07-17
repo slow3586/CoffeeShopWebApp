@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice.repository;
+package com.slow3586.drinkshop.orderservice.repository;
 
 
 import com.slow3586.drinkshop.api.mainservice.entity.OrderItem;

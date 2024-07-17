@@ -1,6 +1,7 @@
 package com.slow3586.drinkshop.mainservice.controller;
 
 import com.slow3586.drinkshop.api.mainservice.dto.LoginRequest;
+import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
 import com.slow3586.drinkshop.mainservice.service.WorkerService;
 import lombok.AccessLevel;
@@ -42,12 +43,12 @@ public class WorkerController {
 
     @PostMapping("token")
     @Transactional(transactionManager = "kafkaTransactionManager")
-    public CompletableFuture<String> token(String token) {
+    public CompletableFuture<Worker> token(String token) {
         return replyingKafkaTemplate.sendAndReceive(
                 new ProducerRecord<>(
                     WorkerTopics.REQUEST_TOKEN, token))
             .thenApply(ConsumerRecord::value)
-            .thenApply(o -> ((String) o))
+            .thenApply(o -> ((Worker) o))
             .toCompletableFuture();
     }
 }

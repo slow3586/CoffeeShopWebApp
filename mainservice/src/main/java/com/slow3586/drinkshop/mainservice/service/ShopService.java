@@ -24,21 +24,13 @@ public class ShopService {
     ShopRepository shopRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.Transaction.CREATED, groupId = "shopservice")
+    @KafkaListener(topics = OrderTopics.Transaction.CREATED, groupId = "shopservice", errorHandler = "orderTransactionListenerErrorHandler")
     public void processOrder(Order order) {
-        try {
-            kafkaTemplate.send( OrderTopics.Transaction.SHOP,
-                order.getId(),
-                order.setShop(Optional.ofNullable(order.getShopId())
-                    .flatMap(c -> shopRepository.findById(order.getShopId()))
-                    .get()));
-        } catch (Exception e) {
-            log.error("ShopService#processOrder: {}", e.getMessage(), e);
-            kafkaTemplate.send(
-                OrderTopics.Transaction.ERROR,
-                order.getId(),
-                order.setError(e.getMessage()));
-        }
+        kafkaTemplate.send(OrderTopics.Transaction.SHOP,
+            order.getId(),
+            order.setShop(Optional.ofNullable(order.getShopId())
+                .flatMap(c -> shopRepository.findById(order.getShopId()))
+                .orElseThrow()));
     }
 
     public Shop findById(UUID shopId) {

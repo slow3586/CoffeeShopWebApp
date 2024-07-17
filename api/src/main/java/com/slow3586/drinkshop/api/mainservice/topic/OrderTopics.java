@@ -5,7 +5,7 @@ public final class OrderTopics {
     private static final String NAME = "order";
     private static final String TRANSACTION = ".transaction";
     private static final String REQUEST = ".request";
-    private static final String RESPONSE = ".request";
+    private static final String RESPONSE = ".response";
     private static final String STATUS = ".status";
 
     public static final class Transaction {

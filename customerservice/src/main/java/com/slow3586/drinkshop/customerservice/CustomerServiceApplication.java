@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.customerservice;
 
 import com.slow3586.drinkshop.api.DefaultKafkaReplyErrorChecker;
 import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
@@ -6,8 +6,6 @@ import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,7 +18,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -31,12 +28,8 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.crypto.SecretKey;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -48,11 +41,10 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PROTECTED)
 @EnableKafka
-@EnableKafkaStreams
 @EnableMethodSecurity
-public class MainServiceApplication {
+public class CustomerServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(MainServiceApplication.class, args);
+        SpringApplication.run(CustomerServiceApplication.class, args);
     }
 
     @NonFinal
@@ -83,7 +75,7 @@ public class MainServiceApplication {
                     OrderTopics.Request.REQUEST_COMPLETED_RESPONSE,
                     OrderTopics.Request.REQUEST_CREATE_RESPONSE);
 
-        container.getContainerProperties().setGroupId("drinkshop-mainservice");
+        container.getContainerProperties().setGroupId("customerservice");
 
         ReplyingKafkaTemplate<UUID, Object, Object> template = new ReplyingKafkaTemplate<>(
             defaultKafkaProducerFactory,
@@ -93,16 +85,6 @@ public class MainServiceApplication {
         template.setReplyErrorChecker(defaultKafkaReplyErrorChecker);
 
         return template;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(4, new SecureRandom(new byte[]{1, 2, 3}));
-    }
-
-    @Bean
-    public SecretKey secretKey() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
     }
 
     @Bean

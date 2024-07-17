@@ -18,6 +18,8 @@
         <module>telegrambot</module>
         <module>api</module>
         <module>mainservice</module>
+        <module>orderservice</module>
+        <module>customerservice</module>
         <module>cashiermenu</module>
     </modules>
     <url/>

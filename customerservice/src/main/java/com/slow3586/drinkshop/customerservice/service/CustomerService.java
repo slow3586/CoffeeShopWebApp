@@ -1,20 +1,14 @@
-package com.slow3586.drinkshop.mainservice.service;
+package com.slow3586.drinkshop.customerservice.service;
 
 
-import com.slow3586.drinkshop.api.mainservice.GetQrCodeResponse;
+import com.slow3586.drinkshop.api.QrCodeUtils;
+import com.slow3586.drinkshop.api.mainservice.dto.GetQrCodeResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
-import com.slow3586.drinkshop.api.mainservice.entity.Order;
-import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
-import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
-import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
-import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
-import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
+import com.slow3586.drinkshop.customerservice.repository.CustomerRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -22,7 +16,6 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoField;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -31,12 +24,12 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class CustomerService {
     CustomerRepository customerRepository;
-    KafkaTemplate<UUID, Object> kafkaTemplate;
     QrCodeUtils qrCodeUtils;
 
     public Customer findById(UUID uuid) {
         return customerRepository.findById(uuid)
-            .orElseThrow(() -> new IllegalArgumentException("Customer with UUID " + uuid + " does not exist!"));
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Customer with UUID " + uuid + " does not exist!"));
     }
 
     public Customer findOrCreateByTelegramId(String telegramId) {
@@ -45,15 +38,20 @@ public class CustomerService {
                 new Customer().setTelegramId(telegramId)));
     }
 
-    public Customer updateContact(UUID customerId, String phone, String name) {
+    public Customer updateContact(Customer customer) {
+        UUID id = customer.getId();
+        String phone = customer.getPhoneNumber();
+        String name = customer.getName();
+
         if (!phone.startsWith("+7") || phone.length() != 12) {
             throw new IllegalArgumentException();
         }
 
-        return customerRepository.findById(customerId)
+        return customerRepository.findById(id)
             .map(c -> c.setPhoneNumber(phone).setName(name))
             .map(customerRepository::save)
-            .orElseThrow(() -> new IllegalArgumentException("Customer with ID " + customerId + " does not exist!"));
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Customer with ID " + id + " does not exist!"));
     }
 
     public Customer findByQrCode(String qrCode) {
@@ -82,29 +80,5 @@ public class CustomerService {
             .duration(Duration.ofMinutes(5))
             .image(image)
             .build();
-    }
-
-    @KafkaListener(topics = OrderTopics.Transaction.CREATED, groupId = "customerservice")
-    public void processOrder(Order order) {
-        try {
-            kafkaTemplate.send(OrderTopics.Transaction.CUSTOMER,
-                order.getId(),
-                order.setCustomer(Optional.ofNullable(order.getCustomerId())
-                    .flatMap(customerRepository::findById)
-                    .orElseThrow()));
-        } catch (Exception e) {
-            log.error("CustomerService#processOrder: {}", e.getMessage(), e);
-            kafkaTemplate.send(OrderTopics.Transaction.ERROR,
-                order.getId(),
-                order.setError(e.getMessage()));
-        }
-    }
-
-    @KafkaListener(topics = CustomerTelegramTopics.Transaction.CREATED, groupId = "customerservice")
-    public void processTelegramPublish(TelegramPublish telegramPublish) {
-        kafkaTemplate.send(CustomerTelegramTopics.Transaction.WITH_CUSTOMERS,
-            telegramPublish.getId(),
-            telegramPublish.setCustomerList(
-                customerRepository.findAll()));
     }
 }

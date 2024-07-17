@@ -1,14 +1,12 @@
 package com.slow3586.drinkshop.telegrambot;
 
-import com.slow3586.drinkshop.api.mainservice.TelegramServiceClient;
+import com.slow3586.drinkshop.api.mainservice.client.TelegramServiceClient;
 import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
-import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublishEntry;
 import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -35,7 +33,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @KafkaListener(topics = CustomerTelegramTopics.Transaction.CREATED)
-    public void aweh(TelegramPublishEntry telegramPublishEntry) throws TelegramApiException {
+    public void processTelegramPublishEntry(TelegramPublishEntry telegramPublishEntry) throws TelegramApiException {
         this.execute(SendMessage.builder()
             .chatId(telegramPublishEntry.getTelegramId())
             .text(telegramPublishEntry.getText())

@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.customerservice;
 
 import com.slow3586.drinkshop.api.DefaultSecurityWebFilter;
 import lombok.AccessLevel;
@@ -13,7 +13,7 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PROTECTED)
-public class MainServiceSecurityConfig {
+public class CustomerServiceSecurityConfig {
     DefaultSecurityWebFilter defaultSecurityWebFilter;
 
     @Bean

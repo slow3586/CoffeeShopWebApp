@@ -1,48 +1,6 @@
 -- liquibase formatted sql
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- changeset lia:1
-CREATE TABLE customer
-(
-    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    telegram_id        TEXT,
-    name               TEXT,
-    points             INT,
-    points_reserved    INT,
-    phone_number       TEXT,
-    qr_code            TEXT,
-    qr_code_expires_at TIMESTAMP WITHOUT TIME ZONE,
-    blocked_reason     TEXT,
-    created_at         TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at   TIMESTAMP WITHOUT TIME ZONE
-);
-
--- changeset lia:2
-CREATE TABLE "order"
-(
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    customer_id      UUID,
-    shop_id          UUID,
-    rating           INTEGER,
-    status           TEXT,
-    use_points       BOOLEAN,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    paid_at          TIMESTAMP WITHOUT TIME ZONE,
-    completed_at     TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at TIMESTAMP WITHOUT TIME ZONE
-);
-
--- changeset lia:3
-CREATE TABLE order_item
-(
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id         UUID,
-    product_id       UUID,
-    quantity         INTEGER,
-    created_at       TIMESTAMP WITHOUT TIME ZONE,
-    last_modified_at TIMESTAMP WITHOUT TIME ZONE
-);
-
 -- changeset lia:4
 CREATE TABLE product_inventory_type
 (

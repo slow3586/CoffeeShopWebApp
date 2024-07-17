@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api.mainservice.client;
 
 import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;

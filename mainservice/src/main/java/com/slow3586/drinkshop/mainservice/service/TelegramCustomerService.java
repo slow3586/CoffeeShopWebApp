@@ -1,18 +1,18 @@
 package com.slow3586.drinkshop.mainservice.service;
 
-import com.slow3586.drinkshop.api.mainservice.GetQrCodeResponse;
+import com.slow3586.drinkshop.api.mainservice.client.CustomerClient;
+import com.slow3586.drinkshop.api.mainservice.dto.GetQrCodeResponse;
 import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.entity.Promo;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublish;
 import com.slow3586.drinkshop.api.mainservice.entity.TelegramPublishEntry;
+import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
-import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
-import com.slow3586.drinkshop.mainservice.repository.CustomerRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +39,7 @@ public class TelegramCustomerService {
     TelegramPublishRepository telegramPublishRepository;
     TelegramBotClient telegramBotClient;
     KafkaTemplate<UUID, Object> kafkaTemplate;
-    CustomerService customerService;
-    CustomerRepository customerRepository;
+    CustomerClient customerClient;
 
     @KafkaListener(topics = CustomerTelegramTopics.PROCESS_REQUEST)
     public TelegramProcessResponse process(@RequestBody TelegramProcessRequest request) {
@@ -49,7 +48,7 @@ public class TelegramCustomerService {
         final String telegramUserId = request.getTelegramId();
         final String messageText = request.getText();
 
-        Customer customer = customerService.findOrCreateByTelegramId(telegramUserId);
+        Customer customer = customerClient.findOrCreateByTelegramId(telegramUserId);
 
         //region REGISTRATION
         if (customer.getPhoneNumber() == null) {
@@ -58,7 +57,9 @@ public class TelegramCustomerService {
                 final String name = request.getName();
 
                 try {
-                    customer = customerService.updateContact(customer.getId(), phoneNumber, name);
+                    customer = customerClient.updateContact(customer
+                        .setPhoneNumber(phoneNumber)
+                        .setName(name));
                     response.setSendText("Приятно познакомиться, " + name + "! Регистрация прошла успешно.");
                 } catch (Exception e) {
                     response.setSendText("Извини, но для использования приложения необходим российский номер телефона.");
@@ -73,7 +74,7 @@ public class TelegramCustomerService {
         //region LOGIC
         if (customer.getPhoneNumber() != null && customer.getBlockedReason() == null) {
             if (GET_MY_VIRTUAL_CARD.equals(messageText)) {
-                GetQrCodeResponse qrCode = customerService.getQrCode(customer.getTelegramId());
+                GetQrCodeResponse qrCode = customerClient.getQrCode(customer.getTelegramId());
 
                 response.setSendImageName("qrcode.png");
                 response.setSendImageBytes(qrCode.getImage());

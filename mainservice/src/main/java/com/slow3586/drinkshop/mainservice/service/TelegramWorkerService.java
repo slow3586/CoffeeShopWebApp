@@ -1,5 +1,6 @@
 package com.slow3586.drinkshop.mainservice.service;
 
+import com.slow3586.drinkshop.api.QrCodeUtils;
 import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
@@ -7,7 +8,6 @@ import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import com.slow3586.drinkshop.mainservice.repository.PromoRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
 import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
-import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;

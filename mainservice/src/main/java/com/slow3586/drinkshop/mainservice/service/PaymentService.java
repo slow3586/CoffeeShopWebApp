@@ -31,7 +31,6 @@ public class PaymentService {
     PaymentRepository paymentRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
     StreamsBuilder streamsBuilder;
-    OrderService orderService;
 
     @PostConstruct
     public void processOrder() {
@@ -99,7 +98,7 @@ public class PaymentService {
 
     @KafkaListener(topics = PaymentTopics.REQUEST_SYSTEM_RESPONSE,
         groupId = "paymentservice",
-        errorHandler = "kafkaListenerErrorHandler")
+        errorHandler = "defaultKafkaListenerErrorHandler")
     public void processUpdate(PaymentSystemUpdate update) {
         Payment payment = paymentRepository.findByOrderId(update.getOrderId())
             .orElseThrow()

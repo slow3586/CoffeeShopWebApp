@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice.utils;
+package com.slow3586.drinkshop.api;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;

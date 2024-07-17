@@ -7,10 +7,10 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>com.slow3586.drinkshop</groupId>
-    <artifactId>mainservice</artifactId>
+    <artifactId>customerservice</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>mainservice</name>
-    <description>mainservice</description>
+    <name>customerservice</name>
+    <description>customerservice</description>
     <url/>
     <licenses>
         <license/>
@@ -41,11 +41,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.12.3</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -118,11 +113,6 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>1.18.32</version>
-                        </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>1.5.5.Final</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

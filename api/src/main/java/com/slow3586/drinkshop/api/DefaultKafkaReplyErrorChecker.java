@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api;
 
 
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 @Component
 @Slf4j
-public class KafkaReplyErrorChecker implements Function<ConsumerRecord<?, ?>, Exception> {
+public class DefaultKafkaReplyErrorChecker implements Function<ConsumerRecord<?, ?>, Exception> {
     @Override
     public Exception apply(ConsumerRecord<?, ?> record)     {
         try {

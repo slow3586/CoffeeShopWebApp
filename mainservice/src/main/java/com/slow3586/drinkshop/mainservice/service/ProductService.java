@@ -30,21 +30,15 @@ public class ProductService {
     ProductInventoryTypeRepository productInventoryTypeRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.Transaction.CREATED, groupId = "productservice")
+    @KafkaListener(topics = OrderTopics.Transaction.CREATED, groupId = "productservice", errorHandler = "orderTransactionListenerErrorHandler")
     @Transactional(transactionManager = "kafkaTransactionManager")
     public void processOrder(Order order) {
-        try {
-            kafkaTemplate.send(OrderTopics.Transaction.PRODUCT,
-                order.getId(),
-                order.setOrderItemList(order.getOrderItemList().stream().map(orderItem ->
+        kafkaTemplate.send(OrderTopics.Transaction.PRODUCT,
+            order.getId(),
+            order.setOrderItemList(order.getOrderItemList().stream().map(orderItem ->
                     orderItem.setProduct(productRepository.findById(orderItem.getProductId()).get()
                         .setProductInventoryList(productInventoryRepository.findByProductId(orderItem.getProductId()))))
-                    .toList()));
-        } catch (Exception e) {
-            kafkaTemplate.send(OrderTopics.Transaction.ERROR,
-                order.getId(),
-                order.setError(e.getMessage()));
-        }
+                .toList()));
     }
 
     public Product findById(UUID productId) {

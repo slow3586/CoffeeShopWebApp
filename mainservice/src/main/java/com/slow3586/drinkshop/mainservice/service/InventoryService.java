@@ -24,40 +24,32 @@ public class InventoryService {
     ShopInventoryRepository shopInventoryRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.Transaction.PRODUCT, groupId = "inventoryservice")
+    @KafkaListener(topics = OrderTopics.Transaction.PRODUCT, groupId = "inventoryservice", errorHandler = "orderTransactionListenerErrorHandler")
     public void processOrder(Order order) {
-        try {
-            order.getOrderItemList().forEach(orderItem ->
-                orderItem.getProduct().getProductInventoryList().forEach(productInventory -> {
-                    final ShopInventory shopInventory =
-                        shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
-                                order.getShopId(),
-                                productInventory.getProductInventoryTypeId())
-                            .orElseThrow(() -> new IllegalArgumentException("Shop Inventory not found for ShopId: "
-                                + order.getShopId() + " and InventoryId: "
-                                + productInventory.getProductInventoryTypeId()));
+        order.getOrderItemList().forEach(orderItem ->
+            orderItem.getProduct().getProductInventoryList().forEach(productInventory -> {
+                final ShopInventory shopInventory =
+                    shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                            order.getShopId(),
+                            productInventory.getProductInventoryTypeId())
+                        .orElseThrow(() -> new IllegalArgumentException("Shop Inventory not found for ShopId: "
+                            + order.getShopId() + " and InventoryId: "
+                            + productInventory.getProductInventoryTypeId()));
 
-                    final int requiredQuantity = productInventory.getQuantity() * orderItem.getQuantity();
-                    final int availableQuantity = shopInventory.getQuantity() - shopInventory.getReserved();
+                final int requiredQuantity = productInventory.getQuantity() * orderItem.getQuantity();
+                final int availableQuantity = shopInventory.getQuantity() - shopInventory.getReserved();
 
-                    if (availableQuantity < requiredQuantity) {
-                        throw new IllegalStateException("Not enough product inventory in shop for order item: "
-                            + orderItem.getId());
-                    }
+                if (availableQuantity < requiredQuantity) {
+                    throw new IllegalStateException("Not enough product inventory in shop for order item: "
+                        + orderItem.getId());
+                }
 
-                    shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
-                    productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
-                }));
-            kafkaTemplate.send(OrderTopics.Transaction.INVENTORY,
-                order.getId(),
-                order);
-        } catch (Exception e) {
-            log.error("InventoryService#processOrder: {}", e.getMessage(), e);
-            kafkaTemplate.send(
-                OrderTopics.Transaction.ERROR,
-                order.getId(),
-                order.setError(e.getMessage()));
-        }
+                shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
+                productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
+            }));
+        kafkaTemplate.send(OrderTopics.Transaction.INVENTORY,
+            order.getId(),
+            order);
     }
 
     @KafkaListener(topics = {OrderTopics.Transaction.ERROR}, groupId = "inventoryservice")

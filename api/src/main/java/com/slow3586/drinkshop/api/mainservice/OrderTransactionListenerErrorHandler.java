@@ -1,6 +1,8 @@
 package com.slow3586.drinkshop.api.mainservice;
 
 
+import com.slow3586.drinkshop.api.mainservice.entity.Order;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.springframework.kafka.listener.ConsumerAwareListenerErrorHandler;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KafkaListenerErrorHandler implements ConsumerAwareListenerErrorHandler {
+public class OrderTransactionListenerErrorHandler implements ConsumerAwareListenerErrorHandler {
     @Override
     public Object handleError(
         Message<?> message,
@@ -20,9 +22,14 @@ public class KafkaListenerErrorHandler implements ConsumerAwareListenerErrorHand
         Consumer<?, ?> consumer
     ) {
         log.error("#handle", exception);
-        return MessageBuilder.fromMessage(message)
+
+        Order order = (Order) message.getPayload();
+
+        return MessageBuilder.withPayload(order.setError(exception.getMessage()))
             .setHeader(KafkaHeaders.EXCEPTION_FQCN, exception.getCause().getClass().getSimpleName())
             .setHeader(KafkaHeaders.EXCEPTION_MESSAGE, exception.getCause().getMessage())
+            .setHeader(KafkaHeaders.KEY, message.getHeaders().get(KafkaHeaders.RECEIVED_KEY))
+            .setHeader(KafkaHeaders.TOPIC, OrderTopics.Transaction.ERROR)
             .build();
     }
 }

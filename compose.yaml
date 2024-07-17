@@ -56,6 +56,38 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       <<: *healthcheck
 
+  orderservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: [ "5440:5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  customerservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: [ "5441:5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
   telegrambot:
     build: ./telegrambot
     logging: *logging

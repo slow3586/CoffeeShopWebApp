@@ -1,12 +1,9 @@
-package com.slow3586.drinkshop.mainservice.controller;
+package com.slow3586.drinkshop.orderservice.controller;
 
 import com.slow3586.drinkshop.api.mainservice.dto.OrderRequest;
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
 import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
-import com.slow3586.drinkshop.mainservice.service.CustomerService;
-import com.slow3586.drinkshop.mainservice.service.OrderService;
-import com.slow3586.drinkshop.mainservice.service.ProductService;
-import com.slow3586.drinkshop.mainservice.service.ShopService;
+import com.slow3586.drinkshop.orderservice.service.OrderService;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +33,17 @@ import java.util.concurrent.CompletableFuture;
 public class OrderController {
     OrderService orderService;
     ReplyingKafkaTemplate<UUID, Object, Object> replyingKafkaTemplate;
-    CustomerService customerService;
-    ShopService shopService;
-    ProductService productService;
 
     @GetMapping("findAllActiveByShopId/{shopId}")
     @Secured({"SYSTEM", "CASHIER", "ADMIN"})
     public List<Order> findAllActiveByShopId(@PathVariable UUID shopId) {
         return orderService.findAllActiveByShopId(shopId);
+    }
+
+    @GetMapping("findAll")
+    @Secured({"SYSTEM", "CASHIER", "ADMIN"})
+    public List<Order> findAll() {
+        return orderService.findAll();
     }
 
     @PostMapping("create")

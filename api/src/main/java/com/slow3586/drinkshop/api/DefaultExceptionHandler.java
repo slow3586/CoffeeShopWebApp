@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.api;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @Slf4j
 @ControllerAdvice
-public class MainServiceExceptionHandler {
+public class DefaultExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public ResponseEntity exception(Throwable e) {
         log.error("#exception handler", e);

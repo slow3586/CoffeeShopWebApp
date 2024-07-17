@@ -1,4 +1,4 @@
-package com.slow3586.drinkshop.mainservice.repository;
+package com.slow3586.drinkshop.orderservice.repository;
 
 
 import com.slow3586.drinkshop.api.mainservice.entity.Order;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Repository
 @Transactional(transactionManager = "transactionManager")
 public interface OrderRepository extends ListCrudRepository<Order, UUID> {
-    @Query("select * from customer_order o " +
+    @Query("select * from \"order\" o " +
         "where o.shop_id = :shopId " +
         "order by o.created_at limit 100")
     List<Order> findAllActiveByShopId(UUID shopId);

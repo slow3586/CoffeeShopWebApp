@@ -1,7 +1,7 @@
-package com.slow3586.drinkshop.mainservice;
+package com.slow3586.drinkshop.api;
 
+import com.slow3586.drinkshop.api.mainservice.client.WorkerClient;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
-import com.slow3586.drinkshop.mainservice.service.WorkerService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +22,9 @@ import java.io.IOException;
 @Component
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
-public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
-    WorkerService workerService;
+@Slf4j
+public class DefaultSecurityWebFilter extends OncePerRequestFilter {
+    WorkerClient workerClient;
 
     @Override
     protected void doFilterInternal(
@@ -34,13 +36,17 @@ public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
             null,
             null);
 
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            Worker worker = workerService.token(authorizationHeader.substring("Bearer ".length()));
-            token = new UsernamePasswordAuthenticationToken(
-                worker.getName(),
-                null,
-                AuthorityUtils.createAuthorityList(worker.getRole()));
+        try {
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                Worker worker = workerClient.token(authorizationHeader.substring("Bearer ".length()));
+                token = new UsernamePasswordAuthenticationToken(
+                    worker.getName(),
+                    null,
+                    AuthorityUtils.createAuthorityList(worker.getRole()));
+            }
+        } catch (Exception e) {
+            log.trace("error", e);
         }
 
         SecurityContextHolder.getContext().setAuthentication(token);
