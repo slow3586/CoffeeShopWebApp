@@ -43,4 +43,8 @@ public class Order {
     List<OrderItem> orderItemList;
     @Transient
     Payment payment;
+    @Transient
+    TelegramPublish telegramPublishCreated;
+    @Transient
+    TelegramPublish telegramPublishReady;
 }

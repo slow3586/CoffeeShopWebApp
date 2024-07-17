@@ -43,9 +43,9 @@ public class OrderService {
     ProductService productService;
     StreamsBuilder streamsBuilder;
 
-    @KafkaListener(topics = OrderTopics.REQUEST_CREATE, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_CREATE, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
-    @SendTo(OrderTopics.REQUEST_CREATE_RESPONSE)
+    @SendTo(OrderTopics.Request.REQUEST_CREATE_RESPONSE)
     public UUID createOrder(OrderRequest orderRequest) {
         final Order order =
             orderRepository.save(
@@ -64,38 +64,43 @@ public class OrderService {
                         .setQuantity(productQuantity.getQuantity()))
                     .toList()));
 
-        kafkaTemplate.send(OrderTopics.TRANSACTION_CREATED,
+        kafkaTemplate.send(OrderTopics.Transaction.CREATED,
             order.getId(),
             order);
 
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.REQUEST_CANCEL, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_CANCEL, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
-    @SendTo(OrderTopics.REQUEST_CANCEL_RESPONSE)
+    @SendTo(OrderTopics.Request.REQUEST_CANCEL_RESPONSE)
     public UUID cancelOrder(UUID orderId) {
-        Order order = orderRepository.findById(orderId).get();
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException("Order with ID " + orderId + " not found"));
         if (!order.getStatus().equals("AWAITING_PAYMENT")) {
-            throw new IllegalStateException("Order status is not in IN_PROGRESS");
+            throw new IllegalStateException("Order status is not in AWAITING_PAYMENT");
         }
-        order.setStatus("CANCELLED");
-        order = orderRepository.save(order);
-        kafkaTemplate.send(OrderTopics.STATUS_COMPLETED, order.getId(), order);
+        order = orderRepository.save(order.setStatus("CANCELLED"));
+        kafkaTemplate.send(OrderTopics.Status.STATUS_COMPLETED,
+            order.getId(),
+            order);
+
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.REQUEST_COMPLETED, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_COMPLETED, groupId = "orderservice", errorHandler = "kafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
-    @SendTo(OrderTopics.REQUEST_COMPLETED_RESPONSE)
+    @SendTo(OrderTopics.Request.REQUEST_COMPLETED_RESPONSE)
     public UUID completeOrder(UUID orderId) {
-        Order order = orderRepository.findById(orderId).get();
+        Order order = orderRepository.findById(orderId).orElseThrow(
+            () -> new IllegalArgumentException("Order with id " + orderId + " doesn't exist."));
         if (!order.getStatus().equals("PAID")) {
             throw new IllegalStateException("Order status is not in PAID");
         }
-        order.setStatus("COMPLETED");
-        order = orderRepository.save(order);
-        kafkaTemplate.send(OrderTopics.STATUS_COMPLETED, order.getId(), order);
+        order = orderRepository.save(order.setStatus("COMPLETED"));
+        kafkaTemplate.send(OrderTopics.Status.STATUS_COMPLETED,
+            order.getId(),
+            order);
 
         return order.getId();
     }
@@ -106,22 +111,22 @@ public class OrderService {
         JsonSerde<Payment> paymentSerde = new JsonSerde<>(Payment.class);
 
         KTable<UUID, Order> orderCreatedTable = streamsBuilder.table(
-            OrderTopics.TRANSACTION_CREATED,
+            OrderTopics.Transaction.CREATED,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Order> orderPaymentTable = streamsBuilder.table(
-            OrderTopics.TRANSACTION_PAYMENT,
+            OrderTopics.Transaction.PAYMENT,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Order> orderPaidTable = streamsBuilder.table(
-            OrderTopics.TRANSACTION_PAID,
+            OrderTopics.Transaction.PAID,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Order> orderCompleteTable = streamsBuilder.table(
-            OrderTopics.TRANSACTION_COMPLETED,
+            OrderTopics.Transaction.COMPLETED,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Order> orderCancelledStatus = streamsBuilder.table(
-            OrderTopics.STATUS_CANCELLED,
+            OrderTopics.Status.STATUS_CANCELLED,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Order> orderCompletedStatus = streamsBuilder.table(
-            OrderTopics.STATUS_COMPLETED,
+            OrderTopics.Status.STATUS_COMPLETED,
             Consumed.with(Serdes.UUID(), orderSerde));
         KTable<UUID, Payment> paidPaymentTable = streamsBuilder.table(PaymentTopics.STATUS_PAID,
             Consumed.with(Serdes.UUID(), paymentSerde));
@@ -133,13 +138,13 @@ public class OrderService {
             .filter((k, v) -> v == null)
             .mapValues(v -> v.setError("TIMEOUT_CREATE"))
             .toStream()
-            .to(OrderTopics.TRANSACTION_ERROR);
+            .to(OrderTopics.Transaction.ERROR);
 
         // PAYMENT RECEIVED
         orderPaymentTable
             .join(paidPaymentTable, Order::setPayment)
             .toStream()
-            .to(OrderTopics.TRANSACTION_PAID);
+            .to(OrderTopics.Transaction.PAID);
 
         // PAYMENT TIMEOUT
         orderPaymentTable
@@ -148,13 +153,13 @@ public class OrderService {
             .filter((k, v) -> v.getPayment() == null)
             .mapValues(v -> v.setError("TIMEOUT_PAYMENT"))
             .toStream()
-            .to(OrderTopics.TRANSACTION_ERROR);
+            .to(OrderTopics.Transaction.ERROR);
 
         // COMPLETE RECEIVED
         orderPaymentTable
             .join(orderCompletedStatus, (a, b) -> a)
             .toStream()
-            .to(OrderTopics.TRANSACTION_COMPLETED);
+            .to(OrderTopics.Transaction.COMPLETED);
 
         // COMPLETE TIMEOUT
         orderPaidTable
@@ -163,36 +168,36 @@ public class OrderService {
             .filter((k, v) -> v.getCompletedAt() == null)
             .mapValues(v -> v.setError("TIMEOUT_COMPLETED"))
             .toStream()
-            .to(OrderTopics.TRANSACTION_ERROR);
+            .to(OrderTopics.Transaction.ERROR);
     }
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_PUBLISH, groupId = "orderservice")
+    @KafkaListener(topics = OrderTopics.Transaction.PUBLISH, groupId = "orderservice")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderAwaitingPayment(Order order) {
         try {
             orderRepository.save(order.setStatus("AWAITING_PAYMENT"));
         } catch (Exception e) {
             kafkaTemplate.send(
-                OrderTopics.TRANSACTION_ERROR,
+                OrderTopics.Transaction.ERROR,
                 order.getId(),
                 order.setError(e.getMessage()));
         }
     }
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_PAID, groupId = "orderservice")
+    @KafkaListener(topics = OrderTopics.Transaction.PAID, groupId = "orderservice")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderPaid(Order order) {
         try {
             orderRepository.save(order.setStatus("PAID"));
         } catch (Exception e) {
             kafkaTemplate.send(
-                OrderTopics.TRANSACTION_ERROR,
+                OrderTopics.Transaction.ERROR,
                 order.getId(),
                 e.getMessage());
         }
     }
 
-    @KafkaListener(topics = {OrderTopics.TRANSACTION_ERROR}, groupId = "orderservice")
+    @KafkaListener(topics = {OrderTopics.Transaction.ERROR}, groupId = "orderservice")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderError(Order order) {
         try {

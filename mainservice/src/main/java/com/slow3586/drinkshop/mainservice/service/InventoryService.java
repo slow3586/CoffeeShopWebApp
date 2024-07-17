@@ -11,11 +11,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +24,7 @@ public class InventoryService {
     ShopInventoryRepository shopInventoryRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_PRODUCT, groupId = "inventoryservice")
+    @KafkaListener(topics = OrderTopics.Transaction.PRODUCT, groupId = "inventoryservice")
     public void processOrder(Order order) {
         try {
             order.getOrderItemList().forEach(orderItem ->
@@ -52,33 +48,53 @@ public class InventoryService {
                     shopInventory.setReserved(shopInventory.getReserved() + requiredQuantity);
                     productInventory.setShopInventory(shopInventoryRepository.save(shopInventory));
                 }));
-            kafkaTemplate.send(OrderTopics.TRANSACTION_INVENTORY,
+            kafkaTemplate.send(OrderTopics.Transaction.INVENTORY,
                 order.getId(),
                 order);
         } catch (Exception e) {
             log.error("InventoryService#processOrder: {}", e.getMessage(), e);
             kafkaTemplate.send(
-                OrderTopics.TRANSACTION_ERROR,
+                OrderTopics.Transaction.ERROR,
                 order.getId(),
                 order.setError(e.getMessage()));
         }
     }
 
-    @KafkaListener(topics = {OrderTopics.TRANSACTION_ERROR}, groupId = "inventoryservice")
-    public void revertOrder(Order order) {
+    @KafkaListener(topics = {OrderTopics.Transaction.ERROR}, groupId = "inventoryservice")
+    public void orderRevert(Order order) {
         try {
             order.getOrderItemList()
                 .forEach(item -> item.getProduct().getProductInventoryList()
                     .forEach(productInventory -> {
-                        ShopInventory entity = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                        ShopInventory shopInventory = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
                             order.getShopId(),
                             productInventory.getProductInventoryTypeId()
                         ).orElseThrow();
-                        shopInventoryRepository.save(
-                            entity.setReserved(entity.getReserved() - productInventory.getQuantity() * item.getQuantity()));
+                        shopInventoryRepository.save(shopInventory
+                            .setReserved(shopInventory.getReserved() - productInventory.getQuantity() * item.getQuantity()));
                     }));
         } catch (Exception e) {
-            log.error("#revertOrder: {}", e.getMessage(), e);
+            log.error("#InventoryService#orderRevert: {}", e.getMessage(), e);
+        }
+    }
+
+    @KafkaListener(topics = {OrderTopics.Transaction.PAID}, groupId = "inventoryservice")
+    public void orderPaid(Order order) {
+        try {
+            order.getOrderItemList()
+                .forEach(item -> item.getProduct().getProductInventoryList()
+                    .forEach(productInventory -> {
+                        ShopInventory shopInventory = shopInventoryRepository.findByShopIdAndProductInventoryTypeId(
+                            order.getShopId(),
+                            productInventory.getProductInventoryTypeId()
+                        ).orElseThrow();
+                        int quantity = productInventory.getQuantity() * item.getQuantity();
+                        shopInventoryRepository.save(shopInventory
+                            .setReserved(shopInventory.getReserved() - quantity)
+                            .setQuantity(shopInventory.getQuantity() - quantity));
+                    }));
+        } catch (Exception e) {
+            log.error("InventoryService#orderPaid: {}", e.getMessage(), e);
         }
     }
 

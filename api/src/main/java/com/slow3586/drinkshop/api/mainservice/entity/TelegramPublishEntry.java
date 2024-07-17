@@ -1,7 +1,6 @@
-package com.slow3586.drinkshop.api.mainservice;
+package com.slow3586.drinkshop.api.mainservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +17,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class TelegramPublishMessage {
-    UUID id;
+public class TelegramPublishEntry {
     UUID telegramPublishId;
+    String telegramBotId;
     String telegramId;
     String text;
-    String status;
 }

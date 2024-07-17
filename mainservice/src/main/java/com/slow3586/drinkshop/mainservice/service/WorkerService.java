@@ -1,9 +1,12 @@
 package com.slow3586.drinkshop.mainservice.service;
 
+import com.slow3586.drinkshop.api.mainservice.GetQrCodeResponse;
 import com.slow3586.drinkshop.api.mainservice.dto.LoginRequest;
+import com.slow3586.drinkshop.api.mainservice.entity.Customer;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
 import com.slow3586.drinkshop.mainservice.repository.WorkerRepository;
+import com.slow3586.drinkshop.mainservice.utils.QrCodeUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.AccessLevel;
@@ -18,6 +21,9 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 
 @Slf4j
@@ -28,14 +34,15 @@ public class WorkerService {
     WorkerRepository workerRepository;
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
+    QrCodeUtils qrCodeUtils;
 
-    @SendTo
-    @KafkaListener(topics = WorkerTopics.REQUEST_LOGIN)
+    @SendTo(WorkerTopics.REQUEST_LOGIN_RESPONSE)
+    @KafkaListener(topics = WorkerTopics.REQUEST_LOGIN, errorHandler = "kafkaListenerErrorHandler")
     public String login(LoginRequest loginRequest) {
-        Worker worker = workerRepository.findByPhoneNumber(loginRequest.getPhone());
+        Worker worker = workerRepository.findByPhoneNumber(loginRequest.getPhone())
+            .orElseThrow();
 
-        if (worker == null
-            || !passwordEncoder.matches(
+        if (!passwordEncoder.matches(
             loginRequest.getPassword(),
             worker.getPassword())
         ) {
@@ -51,8 +58,8 @@ public class WorkerService {
             .compact();
     }
 
-    @SendTo
-    @KafkaListener(topics = WorkerTopics.REQUEST_TOKEN)
+    @SendTo(WorkerTopics.REQUEST_TOKEN_RESPONSE)
+    @KafkaListener(topics = WorkerTopics.REQUEST_TOKEN, errorHandler = "kafkaListenerErrorHandler")
     public Worker token(String token) {
         Claims claims = Jwts.parser()
             .verifyWith(secretKey)
@@ -60,16 +67,37 @@ public class WorkerService {
             .parseSignedClaims(token)
             .getPayload();
 
-        Worker worker = workerRepository.findByPhoneNumber(claims.getSubject());
-
-        if (worker == null) {
-            throw new IllegalArgumentException("Unknown user!");
-        }
+        Worker worker = workerRepository.findByPhoneNumber(claims.getSubject())
+            .orElseThrow();
 
         if (Instant.now().isAfter(claims.getExpiration().toInstant())) {
             throw new IllegalArgumentException("Token expired!");
         }
 
         return worker;
+    }
+
+    public GetQrCodeResponse getQrCode(String telegramId) {
+        Worker worker = workerRepository.findByTelegramId(telegramId)
+            .orElseThrow();
+
+        if (worker.getQrCode() == null || worker.getQrCodeExpiresAt().isBefore(Instant.now())) {
+            final String code = String.valueOf(
+                    LocalTime.now(ZoneId.of("UTC"))
+                        .get(ChronoField.MILLI_OF_DAY) + 10_000_000)
+                .substring(0, 6);
+
+            worker.setQrCode(code);
+            worker.setQrCodeExpiresAt(Instant.now().plusSeconds(300));
+            worker = workerRepository.save(worker);
+        }
+
+        final byte[] image = qrCodeUtils.generateQRCodeImage(worker.getQrCode());
+
+        return GetQrCodeResponse.builder()
+            .code(worker.getQrCode())
+            .duration(Duration.ofMinutes(5))
+            .image(image)
+            .build();
     }
 }

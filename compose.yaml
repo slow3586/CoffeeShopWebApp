@@ -98,6 +98,25 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
+  kafka-connect:
+    build:
+      dockerfile: ./kafkaconnect.Dockerfile
+    logging: *logging
+    restart: always
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka-broker-0:9091"
+      CONNECT_GROUP_ID: "kafka-connect"
+      CONNECT_CONFIG_STORAGE_TOPIC: "kafka-connect-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "kafka-connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "kafka-connect-status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.UUIDConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      KAFKA_HEAP_OPTS: -Xms64M -Xmx512M
+    healthcheck:
+      test: "curl --fail --silent localhost:8083 | grep version || exit 1"
+      <<: *healthcheck
+
   kafdrop:
     image: obsidiandynamics/kafdrop:4.0.1
     restart: always

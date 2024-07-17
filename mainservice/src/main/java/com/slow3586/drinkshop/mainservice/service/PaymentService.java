@@ -37,12 +37,12 @@ public class PaymentService {
     public void processOrder() {
         JsonSerde<Order> orderSerde = new JsonSerde<>(Order.class);
 
-        streamsBuilder.table(OrderTopics.TRANSACTION_CUSTOMER,
+        streamsBuilder.table(OrderTopics.Transaction.CUSTOMER,
                 Consumed.with(Serdes.UUID(), orderSerde))
-            .join(streamsBuilder.table(OrderTopics.TRANSACTION_INVENTORY,
+            .join(streamsBuilder.table(OrderTopics.Transaction.INVENTORY,
                     Consumed.with(Serdes.UUID(), orderSerde)),
                 (a, b) -> a.setOrderItemList(b.getOrderItemList()))
-            .join(streamsBuilder.table(OrderTopics.TRANSACTION_SHOP,
+            .join(streamsBuilder.table(OrderTopics.Transaction.SHOP,
                     Consumed.with(Serdes.UUID(), orderSerde)),
                 (a, b) -> a.setShop(b.getShop()))
             .toStream()
@@ -65,7 +65,7 @@ public class PaymentService {
                                 .setPoints(payInPoints)
                                 .setOrderId(order.getId())));
 
-                        kafkaTemplate.send(OrderTopics.TRANSACTION_PAYMENT,
+                        kafkaTemplate.send(OrderTopics.Transaction.PAYMENT,
                             order.getId(),
                             order);
 
@@ -74,7 +74,7 @@ public class PaymentService {
                 } catch (Exception e) {
                     kafkaTemplate.executeInTransaction((status) -> {
                         log.error("PaymentService#processOrder: {}", e.getMessage(), e);
-                        kafkaTemplate.send(OrderTopics.TRANSACTION_ERROR,
+                        kafkaTemplate.send(OrderTopics.Transaction.ERROR,
                             order.getId(),
                             order.setError(e.getMessage()));
                         return true;
@@ -83,14 +83,18 @@ public class PaymentService {
             });
     }
 
-    @KafkaListener(topics = OrderTopics.TRANSACTION_ERROR, groupId = "paymentservice")
+    @KafkaListener(topics = OrderTopics.Transaction.ERROR, groupId = "paymentservice")
     @Transactional(transactionManager = "transactionManager")
-    public void orderCancelled(Order order) {
-        paymentRepository.findByOrderId(order.getId())
-            .ifPresent(payment -> {
-                payment.setStatus("ORDER_CANCELLED");
-                paymentRepository.save(payment);
-            });
+    public void orderError(Order order) {
+        try {
+            paymentRepository.findByOrderId(order.getId())
+                .ifPresent(payment -> {
+                    payment.setStatus("ORDER_CANCELLED");
+                    paymentRepository.save(payment);
+                });
+        } catch (Exception e) {
+            log.error("PaymentService#orderError: {}", e.getMessage(), e);
+        }
     }
 
     @KafkaListener(topics = PaymentTopics.REQUEST_SYSTEM_RESPONSE,

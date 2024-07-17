@@ -36,7 +36,7 @@ public class PromoService {
                 .setStartsAt(promoRequest.getStartsAt())
                 .setEndsAt(promoRequest.getEndsAt()));
 
-        kafkaTemplate.send( PromoTopics.TRANSACTION_CREATED,
+        kafkaTemplate.send( PromoTopics.Transaction.CREATED,
             promo.getId(),
             promo);
     }

@@ -5,5 +5,9 @@ public final class PromoTopics {
     private static final String NAME = "promo";
     private static final String TRANSACTION = ".transaction";
     public static final String CREATE_REQUEST = NAME + ".request.create";
-    public final static String TRANSACTION_CREATED = NAME + TRANSACTION + ".created";
+
+    public static final class Transaction {
+        public final static String CREATED = NAME + TRANSACTION + ".created";
+        public final static String PUBLISH = NAME + TRANSACTION + ".publish";
+    }
 }

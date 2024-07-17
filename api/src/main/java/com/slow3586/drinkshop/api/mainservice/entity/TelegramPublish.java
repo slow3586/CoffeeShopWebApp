@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,11 +24,11 @@ public class TelegramPublish {
     UUID id;
     String telegramBotId;
     UUID customerId;
-    //UUID customerGroupId;
+    UUID customerGroupId;
     String text;
     String status;
     Instant sentAt;
 
     @Transient
-    Customer customer;
+    List<Customer> customerList;
 }

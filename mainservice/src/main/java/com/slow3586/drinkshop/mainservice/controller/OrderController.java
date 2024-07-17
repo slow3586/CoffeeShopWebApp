@@ -51,7 +51,7 @@ public class OrderController {
     @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<UUID> create(@RequestBody @NonNull OrderRequest orderRequest) {
         return replyingKafkaTemplate.sendAndReceive(
-                new ProducerRecord<>(OrderTopics.REQUEST_CREATE, orderRequest))
+                new ProducerRecord<>(OrderTopics.Request.REQUEST_CREATE, orderRequest))
             .thenApply(ConsumerRecord::value)
             .thenApply(o -> ((UUID) o))
             .toCompletableFuture();
@@ -62,7 +62,7 @@ public class OrderController {
     @Transactional(transactionManager = "kafkaTransactionManager")
     public CompletableFuture<UUID> complete(UUID uuid) {
         return replyingKafkaTemplate.sendAndReceive(
-                new ProducerRecord<>(OrderTopics.REQUEST_COMPLETED, uuid))
+                new ProducerRecord<>(OrderTopics.Request.REQUEST_COMPLETED, uuid))
             .thenApply(ConsumerRecord::value)
             .thenApply(o -> ((UUID) o))
             .toCompletableFuture();

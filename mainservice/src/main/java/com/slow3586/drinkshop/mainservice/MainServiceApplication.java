@@ -4,7 +4,7 @@ import com.slow3586.drinkshop.api.mainservice.KafkaReplyErrorChecker;
 import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PaymentTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
-import com.slow3586.drinkshop.api.mainservice.topic.TelegramTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.CustomerTelegramTopics;
 import com.slow3586.drinkshop.api.mainservice.topic.WorkerTopics;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -80,8 +80,8 @@ public class MainServiceApplication {
         ConcurrentMessageListenerContainer<UUID, Object> container =
             kafkaListenerContainerFactory
                 .createContainer(
-                    OrderTopics.REQUEST_COMPLETED_RESPONSE,
-                    OrderTopics.REQUEST_CREATE_RESPONSE);
+                    OrderTopics.Request.REQUEST_COMPLETED_RESPONSE,
+                    OrderTopics.Request.REQUEST_CREATE_RESPONSE);
 
         container.getContainerProperties().setGroupId("drinkshop-mainservice");
 
@@ -108,24 +108,24 @@ public class MainServiceApplication {
     @Bean
     public KafkaAdmin.NewTopics orderTopics() {
         return new KafkaAdmin.NewTopics(Stream.of(
-                OrderTopics.TRANSACTION_CREATED,
-                OrderTopics.TRANSACTION_PUBLISH,
-                OrderTopics.TRANSACTION_CUSTOMER,
-                OrderTopics.TRANSACTION_SHOP,
-                OrderTopics.TRANSACTION_INVENTORY,
-                OrderTopics.TRANSACTION_PRODUCT,
-                OrderTopics.TRANSACTION_PAYMENT,
-                OrderTopics.TRANSACTION_PAID,
-                OrderTopics.TRANSACTION_COMPLETED,
-                OrderTopics.TRANSACTION_ERROR,
-                OrderTopics.REQUEST_CREATE,
-                OrderTopics.REQUEST_COMPLETED,
-                OrderTopics.REQUEST_CANCEL,
-                OrderTopics.REQUEST_CREATE_RESPONSE,
-                OrderTopics.REQUEST_COMPLETED_RESPONSE,
-                OrderTopics.REQUEST_CANCEL_RESPONSE,
-                OrderTopics.STATUS_COMPLETED,
-                OrderTopics.STATUS_CANCELLED
+                OrderTopics.Transaction.CREATED,
+                OrderTopics.Transaction.PUBLISH,
+                OrderTopics.Transaction.CUSTOMER,
+                OrderTopics.Transaction.SHOP,
+                OrderTopics.Transaction.INVENTORY,
+                OrderTopics.Transaction.PRODUCT,
+                OrderTopics.Transaction.PAYMENT,
+                OrderTopics.Transaction.PAID,
+                OrderTopics.Transaction.COMPLETED,
+                OrderTopics.Transaction.ERROR,
+                OrderTopics.Request.REQUEST_CREATE,
+                OrderTopics.Request.REQUEST_COMPLETED,
+                OrderTopics.Request.REQUEST_CANCEL,
+                OrderTopics.Request.REQUEST_CREATE_RESPONSE,
+                OrderTopics.Request.REQUEST_COMPLETED_RESPONSE,
+                OrderTopics.Request.REQUEST_CANCEL_RESPONSE,
+                OrderTopics.Status.STATUS_COMPLETED,
+                OrderTopics.Status.STATUS_CANCELLED
             ).map(t -> TopicBuilder.name(t).build())
             .toList()
             .toArray(new NewTopic[0]));
@@ -146,7 +146,7 @@ public class MainServiceApplication {
     public KafkaAdmin.NewTopics promoTopics() {
         return new KafkaAdmin.NewTopics(Stream.of(
                 PromoTopics.CREATE_REQUEST,
-                PromoTopics.TRANSACTION_CREATED
+                PromoTopics.Transaction.CREATED
             ).map(t -> TopicBuilder.name(t).build())
             .toList()
             .toArray(new NewTopic[0]));
@@ -155,11 +155,11 @@ public class MainServiceApplication {
     @Bean
     public KafkaAdmin.NewTopics telegramTopics() {
         return new KafkaAdmin.NewTopics(Stream.of(
-                TelegramTopics.CUSTOMER_PROCESS_REQUEST,
-                TelegramTopics.CUSTOMER_PROCESS_RESPONSE,
-                TelegramTopics.CUSTOMER_PUBLISH_BOT,
-                TelegramTopics.CUSTOMER_PUBLISH_REQUEST,
-                TelegramTopics.CUSTOMER_PUBLISH_CREATED
+                CustomerTelegramTopics.PROCESS_REQUEST,
+                CustomerTelegramTopics.PROCESS_RESPONSE,
+                CustomerTelegramTopics.Transaction.WITH_CUSTOMERS,
+                CustomerTelegramTopics.PUBLISH_REQUEST,
+                CustomerTelegramTopics.Transaction.CREATED
             ).map(t -> TopicBuilder.name(t).build())
             .toList()
             .toArray(new NewTopic[0]));

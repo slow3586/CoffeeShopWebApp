@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.validation.annotation.Validated;
 
@@ -35,4 +36,7 @@ public class Promo {
     Instant startsAt;
     @NotNull
     Instant endsAt;
+
+    @Transient
+    TelegramPublish telegramPublish;
 }

@@ -12,6 +12,7 @@ import {InputTextarea} from "primereact/inputtextarea";
 import {createRoot} from "react-dom/client";
 
 import './style.less';
+import {Menu} from "primereact/menu";
 
 createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={new QueryClient()}>
@@ -33,8 +34,8 @@ export function AppAdmin() {
     const queryClient = useQueryClient();
 
     const promosQuery = useQuery(
-        ['/api/admin_menu/get_promos'],
-        async () => (await axios.get("/api/admin_menu/get_promos")).data,
+        ['/api/promo/findAll'],
+        async () => (await axios.get("/api/promo/findAll")).data,
         {
             enabled: true
         });
@@ -51,8 +52,29 @@ export function AppAdmin() {
         </div>
     );
 
+    const menuItems = [
+        {
+            label: 'Заказы',
+            command: () => {}
+        },
+        {
+            label: 'Меню',
+            command: () => {}
+        },
+        {
+            label: 'Инвентарь',
+            command: () => {}
+        },
+        {
+            label: 'Акции',
+            command: () => {}
+        }
+    ];
+
+
     return (
         <div className="card">
+            <Menu model={menuItems}></Menu>
             <DataTable value={promos} header={header} footer={() => promos.length} tableStyle={{minWidth: '60rem'}}>
                 <Column field="id" header="Ключ" body={(promo: Promo) => promo.id}></Column>
                 <Column field="text" header="Название" body={(promo: Promo) => promo.name}></Column>

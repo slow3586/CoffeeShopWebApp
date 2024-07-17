@@ -3,7 +3,6 @@ package com.slow3586.drinkshop.mainservice.service;
 import com.slow3586.drinkshop.api.mainservice.dto.TelegramProcessResponse;
 import com.slow3586.drinkshop.api.mainservice.entity.Worker;
 import com.slow3586.drinkshop.api.telegrambot.TelegramBotClient;
-import com.slow3586.drinkshop.api.telegrambot.TelegramBotPublishRequest;
 import com.slow3586.drinkshop.api.telegrambot.TelegramProcessRequest;
 import com.slow3586.drinkshop.mainservice.repository.PromoRepository;
 import com.slow3586.drinkshop.mainservice.repository.TelegramPublishRepository;
@@ -15,14 +14,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,9 +31,7 @@ import java.util.List;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class TelegramWorkerService {
-    static String GET_ALL_DEALS = "Акции";
     static String GET_QR_CODE = "QR код";
-    static String GET_MY_POINTS = "Баллы";
     TelegramPublishRepository telegramPublishRepository;
     TelegramBotClient telegramBotClient;
     QrCodeUtils qrCodeUtils;
@@ -53,10 +46,10 @@ public class TelegramWorkerService {
         final String telegramId = request.getTelegramId();
         final String messageText = request.getText();
 
-        Worker worker = workerRepository.findByTelegramId(telegramId);
+        Worker worker = workerRepository.findByTelegramId(telegramId).orElse(null);
         if (worker == null) {
             if (request.getPhone() != null) {
-                worker = workerRepository.findByPhoneNumber(request.getPhone());
+                worker = workerRepository.findByPhoneNumber(request.getPhone()).orElse(null);
                 if (worker != null && worker.getTelegramId() == null) {
                     worker.setTelegramId(telegramId);
                     worker = workerRepository.save(worker);
@@ -95,8 +88,7 @@ public class TelegramWorkerService {
             if (response.getSendText() == null) {
                 response.setSendText("Перевожу тебя в главное меню.");
             }
-            response.setSendTextKeyboard(List.of(List.of(
-                GET_QR_CODE, GET_MY_POINTS, GET_ALL_DEALS)));
+            response.setSendTextKeyboard(List.of(List.of(GET_QR_CODE)));
         }
         //endregion
 
