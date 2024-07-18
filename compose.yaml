@@ -1,7 +1,10 @@
 name: drinkshop
 
 x-logging: &logging
-  driver: "json-file"
+  driver: gelf
+  options:
+    gelf-address: "udp://host.docker.internal:12201"
+  #driver: "json-file"
 
 x-logging-none: &logging-none
   driver: "none"
@@ -348,21 +351,20 @@ services:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080 || exit 1"
       <<: *healthcheck
 
-  filebeat:
-    image: elastic/filebeat:8.14.1
-    entrypoint: "filebeat -e -strict.perms=false"
-    logging: *logging
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./filebeat.yaml:/usr/share/filebeat/filebeat.yml
-    depends_on:
-      logstash:
-        condition: service_healthy
+  #filebeat:
+  #  image: elastic/filebeat:8.14.1
+  #  entrypoint: 'filebeat -d "*" -e -strict.perms=false'
+  #  logging: *logging
+  #  volumes:
+  #    - /var/lib/docker/containers:/var/lib/docker/containers
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #    - ./filebeat.yaml:/usr/share/filebeat/filebeat.yml
+  #  depends_on:
+  #    logstash:
+  #      condition: service_healthy
 
   logstash:
     image: logstash:8.14.1
-    logging: *logging
     volumes:
       - ./logstash.conf:/etc/logstash/logstash.conf
     depends_on:
@@ -370,7 +372,7 @@ services:
         condition: service_healthy
     command: logstash -f /etc/logstash/logstash.conf
     restart: always
-    expose: [ "5044" ]
+    ports: [ "5044", "12201:12201/udp" ]
     environment:
       LS_JAVA_OPTS: '-Xms64m -Xmx512m'
     healthcheck:
@@ -395,8 +397,23 @@ services:
     logging: *logging
     restart: always
     ports: ["5601:5601"]
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:5601 || exit 1"
       <<: *healthcheck
+
+  #kafka-ui:
+  #  container_name: kafka-ui
+  #  image: provectuslabs/kafka-ui:v0.7.2
+  #  logging: *logging
+  #  ports: ["9093:8080"]
+  #  depends_on:
+  #    - kafka
+  #  environment:
+  #    KAFKA_CLUSTERS_0_NAME: kafka
+  #    KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+  #    DYNAMIC_CONFIG_ENABLED: 'true'

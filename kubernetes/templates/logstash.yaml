@@ -70,13 +70,13 @@ metadata:
 data:
   logstash.conf: |-
     input {
-        gelf {
-            port => 12201
-        }
+      beats {
+        port => "5044"
+      }
     }
 
-      output {
+    output {
       elasticsearch {
-      hosts => ["elasticsearch-service:9200"]
+        hosts => ["elasticsearch-service:9200"]
       }
     }
