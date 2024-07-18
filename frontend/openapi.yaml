@@ -108,7 +108,7 @@ paths:
       responses:
         "200":
           description: "OK"
-  /api/product/all:
+  /api/product/findAll:
     get:
       summary: "GET api/product/all"
       operationId: "all"

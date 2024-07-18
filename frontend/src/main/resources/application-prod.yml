@@ -1,6 +1,6 @@
 spring:
   application:
-    name: 'drinkshop-cashiermenu'
+    name: 'frontend'
   main:
     web-application-type: servlet
     banner-mode: 'off'

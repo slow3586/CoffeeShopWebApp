@@ -1,6 +1,6 @@
 spring:
   application:
-    name: 'drinkshop-cashiermenu'
+    name: 'frontend'
   main:
     web-application-type: servlet
     banner-mode: 'off'
@@ -19,3 +19,26 @@ server:
   compression:
     enabled: true
   port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling.probability: 0.05
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

@@ -1,22 +1,29 @@
 spring:
   application:
-    name: 'drinkshop-telegrambot'
+    name: 'telegrambot'
   main:
     banner-mode: off
     web-application-type: servlet
   kafka:
-    bootstrap-servers: 'localhost:9091'
+    bootstrap-servers: '${KAFKA_SERVERS}'
     producer:
       key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      transaction-id-prefix: 'drinkshop-mainservice'
+      transaction-id-prefix: '${spring.application.name}'
+    consumer:
+      properties:
+        spring.json.trusted.packages: "*"
+      group-id: '${spring.application.name}'
+      key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
     streams:
-      application-id: 'drinkshop-mainservice'
+      application-id: '${spring.application.name}-streams'
       replication-factor: 1
       properties:
         commit.interval.ms: 2000
-        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$UUIDSerde
         default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        spring.json.trusted.packages: "*"
         processing.guarantee: exactly_once_v2
 
 app:
@@ -28,3 +35,26 @@ app:
 
 server:
   port: 8085
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling.probability: 0.05
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

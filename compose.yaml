@@ -13,63 +13,57 @@ x-healthcheck: &healthcheck
   start_period: 5s
 
 x-spring-env: &spring-env
+  server.port: 8080
+  KAFKA_SERVERS: "kafka:9091"
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
-  JAVA_OPTS: -Xms64M -Xmx1200M
+  JAVA_OPTS: -Xms64M -Xmx512M
   SECRET_KEY: qweqweqweqweqweqweqweqweqweqweqrqwrqwrtweqtewqtweq
-  app.client.customer: http://mainservice:8080/customer
+  app.client.customer: http://customerservice:8080/api/customer
+  app.client.inventory: http://inventoryservice:8080/api/inventory
+  app.client.order: http://orderservice:8080/api/order
+  app.client.payment: http://paymentservice:8080/api/payment
+  app.client.product: http://productservice:8080/api/product
+  app.client.util: http://utilservice:8080/api/
 
 services:
   nginx:
     image: nginx:1.27.0-alpine
-    logging: *logging-none
-    ports: [ "8085:80" ]
+    depends_on:
+      frontend:
+        condition: service_healthy
+      customerservice:
+        condition: service_healthy
+      inventoryservice:
+        condition: service_healthy
+      orderservice:
+        condition: service_healthy
+      paymentservice:
+        condition: service_healthy
+      productservice:
+        condition: service_healthy
+      utilservice:
+        condition: service_healthy
+    logging: *logging
+    ports: [ "8080:80" ]
     volumes:
       - './nginx.conf:/etc/nginx/nginx.conf'
 
-  mainservice:
-    build: ./mainservice
+  customerservice:
+    build: ./customerservice
     logging: *logging
     depends_on:
-      mainservicedb:
+      customerservicedb:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     environment:
       <<: *spring-env
-      spring.datasource.url: 'jdbc:postgresql://mainservicedb:5432/postgres'
+      spring.application.name: 'customerservice'
     expose: [ "8080" ]
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  mainservicedb:
-    image: postgres:alpine
-    logging: *logging
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports: [ "5434:5432" ]
-    command: >
-      postgres 
-      -c ssl=off
-      -c wal_level=logical
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      <<: *healthcheck
-
-  orderservicedb:
-    image: postgres:alpine
-    logging: *logging
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports: [ "5440:5432" ]
-    command: >
-      postgres 
-      -c ssl=off
-      -c wal_level=logical
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       <<: *healthcheck
 
   customerservicedb:
@@ -79,7 +73,167 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports: [ "5441:5432" ]
+    expose: [ "5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  inventoryservice:
+    build: ./inventoryservice
+    logging: *logging
+    depends_on:
+      inventoryservicedb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.application.name: 'inventoryservice'
+    expose: [ "8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  inventoryservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    expose: [ "5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  orderservice:
+    build: ./orderservice
+    logging: *logging
+    depends_on:
+      orderservicedb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.application.name: 'orderservice'
+    expose: [ "8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  orderservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    expose: [ "5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  paymentservice:
+    build: ./paymentservice
+    logging: *logging
+    depends_on:
+      paymentservicedb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.application.name: 'paymentservice'
+    expose: [ "8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  paymentservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    expose: [ "5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  productservice:
+    build: ./productservice
+    logging: *logging
+    depends_on:
+      productservicedb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.application.name: 'productservice'
+    expose: [ "8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  productservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    expose: [ "5432" ]
+    command: >
+      postgres 
+      -c ssl=off
+      -c wal_level=logical
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      <<: *healthcheck
+
+  utilservice:
+    build: ./utilservice
+    logging: *logging
+    depends_on:
+      utilservicedb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.application.name: 'utilservice'
+    expose: [ "8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  utilservicedb:
+    image: postgres:alpine
+    logging: *logging
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    expose: [ "5432" ]
     command: >
       postgres 
       -c ssl=off
@@ -91,6 +245,9 @@ services:
   telegrambot:
     build: ./telegrambot
     logging: *logging
+    depends_on:
+      kafka:
+        condition: service_healthy
     environment:
       <<: *spring-env
       app.bot.token: 7166981536:AAG9J4o1hYRzoTLuL9bF63kQd8vZ9tKqFlo
@@ -110,18 +267,19 @@ services:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
 
-  kafka-broker-0:
+  kafka:
     image: confluentinc/cp-kafka:7.5.5
-    ports: ["9091:9091", "9092:9092"]
+    expose: [ "9091", "9092" ]
+    logging: *logging
     environment:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
       KAFKA_NODE_ID: 1
       KAFKA_BROKER_ID: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-0:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: BROKER://kafka-broker-0:9091
-      KAFKA_LISTENERS: BROKER://kafka-broker-0:9091, CONTROLLER://kafka-broker-0:9092
+      KAFKA_ADVERTISED_LISTENERS: BROKER://kafka:9091
+      KAFKA_LISTENERS: BROKER://kafka:9091, CONTROLLER://kafka:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: BROKER
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_NUM_PARTITIONS: 1
@@ -129,13 +287,116 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: "nc -z kafka 9091 || exit 1"
+      <<: *healthcheck
 
   kafdrop:
     image: obsidiandynamics/kafdrop:4.0.1
     restart: always
-    ports: ["9090:9000"]
+    logging: *logging
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports: [ "9090:9000" ]
     environment:
-      KAFKA_BROKERCONNECT: "kafka-broker-0:9091"
+      KAFKA_BROKERCONNECT: "kafka:9091"
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9000 || exit 1"
+      <<: *healthcheck
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    logging: *logging
+    restart: always
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports: ["9091:9090"]
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9090 || exit 1"
+      <<: *healthcheck
+
+  grafana:
+    image: grafana/grafana:10.4.4
+    logging: *logging
+    restart: always
+    ports: ["3000:3000"]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:3000 || exit 1"
+      <<: *healthcheck
+
+  zipkin:
+    image: openzipkin/zipkin:3.4
+    logging: *logging
+    restart: always
+    ports: ["9411:9411"]
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9411 || exit 1"
+      <<: *healthcheck
+
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    logging: *logging
+    restart: always
+    expose: ["8080"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080 || exit 1"
+      <<: *healthcheck
+
+  filebeat:
+    image: elastic/filebeat:8.14.1
+    entrypoint: "filebeat -e -strict.perms=false"
+    logging: *logging
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./filebeat.yaml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      logstash:
+        condition: service_healthy
+
+  logstash:
+    image: logstash:8.14.1
+    logging: *logging
+    volumes:
+      - ./logstash.conf:/etc/logstash/logstash.conf
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: logstash -f /etc/logstash/logstash.conf
+    restart: always
+    expose: [ "5044" ]
+    environment:
+      LS_JAVA_OPTS: '-Xms64m -Xmx512m'
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9600 || exit 1"
+      <<: *healthcheck
+
+  elasticsearch:
+    image: elasticsearch:8.14.1
+    logging: *logging
+    restart: always
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: false
+      ES_JAVA_OPTS: '-Xms128m -Xmx1g'
+    expose: ["9200"]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9200 || exit 1"
+      <<: *healthcheck
+
+  kibana:
+    image: kibana:8.14.1
+    logging: *logging
+    restart: always
+    ports: ["5601:5601"]
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:5601 || exit 1"
       <<: *healthcheck

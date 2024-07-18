@@ -39,7 +39,7 @@ export function AppCashier() {
 
     const productQuery = useQuery(
         ['product'],
-        async () => (await axios.get("/api/product/all")).data,
+        async () => (await axios.get("/api/product/findAll")).data,
         {
             enabled: true
         });

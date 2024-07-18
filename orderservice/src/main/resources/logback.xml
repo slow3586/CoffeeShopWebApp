@@ -2,11 +2,25 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %level %logger{36}: %msg%n</pattern>
+            <pattern>%d{dd-MM-yy HH:mm:ss.SSS} %level %logger{0}: %msg %rootException{2}%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/opt/log/log.txt</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+            <fileNamePattern>log_%d{yyyy-MM-dd_HH, UTC}.%i.txt</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{dd-MM-yy HH:mm:ss.SSS} %level %logger{0}: %msg %rootException{2}%n</pattern>
         </encoder>
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>
