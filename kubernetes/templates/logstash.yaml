@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash-deployment
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash-container
+          image: logstash:8.14.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: udp
+              containerPort: 12201
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          volumeMounts:
+            - name: logstash-config-volume
+              mountPath: /etc/logstash/logstash.conf
+      volumes:
+        - name: logstash-config-volume
+          configMap:
+            name: logstash-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash-service
+  labels:
+    app: logstash
+spec:
+  type: NodePort
+  selector:
+    app: logstash
+  ports:
+    - name: udp
+      port: 12201
+      protocol: UDP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+data:
+  logstash.conf: |-
+    input {
+        gelf {
+            port => 12201
+        }
+    }
+
+      output {
+      elasticsearch {
+      hosts => ["elasticsearch-service:9200"]
+      }
+    }

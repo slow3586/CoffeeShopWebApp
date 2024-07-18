@@ -106,8 +106,13 @@ public class TelegramCustomerService {
         return response;
     }
 
-    @KafkaListener(topics = OrderTopics.Transaction.PAYMENT)
+    @KafkaListener(topics = OrderTopics.Transaction.PAYMENT, errorHandler = "loggingKafkaListenerErrorHandler")
     public void processOrderCreated(Order order) {
+        if (order.getCustomer() == null) {
+            log.info("Order {}: No customer", order.getId());
+            return;
+        }
+
         TelegramPublish telegramPublish = this.create(
             new TelegramPublish()
                 .setCustomerId(order.getCustomerId())
@@ -133,8 +138,13 @@ public class TelegramCustomerService {
             order.setTelegramPublishCreated(telegramPublish));
     }
 
-    @KafkaListener(topics = OrderTopics.Transaction.COMPLETED)
+    @KafkaListener(topics = OrderTopics.Transaction.COMPLETED, errorHandler = "loggingKafkaListenerErrorHandler")
     public void processOrderReady(Order order) {
+        if (order.getCustomer() == null) {
+            log.info("Order {}: No customer", order.getId());
+            return;
+        }
+
         TelegramPublish telegramPublish = this.create(
             new TelegramPublish()
                 .setCustomerId(order.getCustomerId())
@@ -145,7 +155,7 @@ public class TelegramCustomerService {
             order.setTelegramPublishCreated(telegramPublish));
     }
 
-    @KafkaListener(topics = PromoTopics.Transaction.CREATED)
+    @KafkaListener(topics = PromoTopics.Transaction.CREATED, errorHandler = "promoTransactionListenerErrorHandler")
     public void processPromo(Promo promo) {
         TelegramPublish telegramPublish = this.create(
             new TelegramPublish()
@@ -160,17 +170,20 @@ public class TelegramCustomerService {
     @Transactional(transactionManager = "kafkaTransactionManager")
     @KafkaListener(topics = CustomerTelegramTopics.Transaction.WITH_CUSTOMERS)
     public void processPublishCreated(TelegramPublish telegramPublish) {
-        telegramPublish.getCustomerList().forEach(customer ->
-        {
-            TelegramPublishEntry telegramPublishEntry = new TelegramPublishEntry()
-                .setText(telegramPublish.getText())
-                .setTelegramId(customer.getTelegramId())
-                .setTelegramPublishId(telegramPublish.getId());
+        try {
+            telegramPublish.getCustomerList().forEach(customer -> {
+                TelegramPublishEntry telegramPublishEntry = new TelegramPublishEntry()
+                    .setText(telegramPublish.getText())
+                    .setTelegramId(customer.getTelegramId())
+                    .setTelegramPublishId(telegramPublish.getId());
 
-            kafkaTemplate.send(CustomerTelegramTopics.Transaction.ENTRY,
-                telegramPublish.getId(),
-                telegramPublishEntry);
-        });
+                kafkaTemplate.send(CustomerTelegramTopics.Transaction.ENTRY,
+                    telegramPublish.getId(),
+                    telegramPublishEntry);
+            });
+        } catch (Exception e) {
+            log.error("Error processing publish created", e);
+        }
     }
 
     protected TelegramPublish create(TelegramPublish telegramPublish) {

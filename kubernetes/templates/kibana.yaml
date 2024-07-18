@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-deployment
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+        - name: kibana-container
+          image: kibana:7.9.3
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: http://elasticsearch-service:9200
+          ports:
+            - containerPort: 5601
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5601
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5601
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-service
+  labels:
+    app: kibana
+spec:
+  type: NodePort
+  selector:
+    app: kibana
+  ports:
+    - name: port0
+      port: 5601

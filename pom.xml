@@ -14,13 +14,12 @@
     <artifactId>drinkshop</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>buymenu</module>
         <module>telegrambot</module>
         <module>api</module>
         <module>mainservice</module>
         <module>orderservice</module>
         <module>customerservice</module>
-        <module>cashiermenu</module>
+        <module>frontend</module>
     </modules>
     <url/>
     <licenses>

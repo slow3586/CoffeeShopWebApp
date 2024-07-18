@@ -1,0 +1,37 @@
+package com.slow3586.drinkshop.api.mainservice;
+
+
+import com.slow3586.drinkshop.api.mainservice.entity.Order;
+import com.slow3586.drinkshop.api.mainservice.entity.Promo;
+import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
+import com.slow3586.drinkshop.api.mainservice.topic.PromoTopics;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.springframework.kafka.listener.ConsumerAwareListenerErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
+
+@Component
+@Slf4j
+public class PromoTransactionListenerErrorHandler implements ConsumerAwareListenerErrorHandler {
+    @Override
+    public Object handleError(
+        Message<?> message,
+        ListenerExecutionFailedException exception,
+        Consumer<?, ?> consumer
+    ) {
+        log.error("#handle", exception);
+
+        Promo promo = (Promo) message.getPayload();
+
+        return MessageBuilder.withPayload(promo.setError(exception.getMessage()))
+            .setHeader(KafkaHeaders.EXCEPTION_FQCN, exception.getCause().getClass().getSimpleName())
+            .setHeader(KafkaHeaders.EXCEPTION_MESSAGE, exception.getCause().getMessage())
+            .setHeader(KafkaHeaders.KEY, message.getHeaders().get(KafkaHeaders.RECEIVED_KEY))
+            .setHeader(KafkaHeaders.TOPIC, PromoTopics.Transaction.ERROR)
+            .build();
+    }
+}

@@ -93,6 +93,3 @@ INSERT INTO shop_inventory(shop_id, product_inventory_type_id, quantity)
 VALUES ((select id from shop t where t.name = 'Грин хауc №1'), (select id from product_inventory_type t where t.name = 'Молоко'), 1000),
        ((select id from shop t where t.name = 'Грин хауc №1'), (select id from product_inventory_type t where t.name = 'Чай'), 1000),
        ((select id from shop t where t.name = 'Грин хауc №1'), (select id from product_inventory_type t where t.name = 'Шоколад'), 1000);
-
-INSERT INTO customer(telegram_id, name, points, phone_number, qr_code, qr_code_expires_at)
-VALUES ('telegram_id', 'name', 100, 'phone_number', '123456', '9999-01-01')

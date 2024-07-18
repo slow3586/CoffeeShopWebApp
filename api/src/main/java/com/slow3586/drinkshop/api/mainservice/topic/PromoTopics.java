@@ -9,5 +9,6 @@ public final class PromoTopics {
     public static final class Transaction {
         public final static String CREATED = NAME + TRANSACTION + ".created";
         public final static String PUBLISH = NAME + TRANSACTION + ".publish";
+        public final static String ERROR = NAME + TRANSACTION + PromoTopics.ERROR;
     }
 }

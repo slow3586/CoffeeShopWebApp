@@ -32,11 +32,11 @@ public class DefaultSecurityWebFilter extends OncePerRequestFilter {
         @NonNull final HttpServletResponse response,
         @NonNull final FilterChain filterChain
     ) throws ServletException, IOException {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-            null,
-            null);
 
         try {
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                null,
+                null);
             String authorizationHeader = request.getHeader("Authorization");
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 Worker worker = workerClient.token(authorizationHeader.substring("Bearer ".length()));
@@ -45,11 +45,11 @@ public class DefaultSecurityWebFilter extends OncePerRequestFilter {
                     null,
                     AuthorityUtils.createAuthorityList(worker.getRole()));
             }
+            SecurityContextHolder.getContext().setAuthentication(token);
         } catch (Exception e) {
             log.trace("error", e);
         }
 
-        SecurityContextHolder.getContext().setAuthentication(token);
         filterChain.doFilter(request, response);
     }
 }

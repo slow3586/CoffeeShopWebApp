@@ -29,8 +29,8 @@ public class CustomerListener {
         kafkaTemplate.send(OrderTopics.Transaction.CUSTOMER,
             order.getId(),
             order.setCustomer(Optional.ofNullable(order.getCustomerId())
-                .flatMap(customerRepository::findById)
-                .orElseThrow()));
+                .map(c -> customerRepository.findById(c).orElseThrow())
+                .orElse(null)));
     }
 
     @KafkaListener(topics = CustomerTelegramTopics.Transaction.CREATED)

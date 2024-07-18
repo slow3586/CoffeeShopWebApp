@@ -39,4 +39,6 @@ public class Promo {
 
     @Transient
     TelegramPublish telegramPublish;
+    @Transient
+    String error;
 }

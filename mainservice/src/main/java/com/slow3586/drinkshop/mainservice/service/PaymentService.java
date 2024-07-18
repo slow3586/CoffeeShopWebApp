@@ -49,12 +49,13 @@ public class PaymentService {
                 try {
                     if (paymentRepository.existsByOrderId(order.getId())) {return;}
 
-                    kafkaTemplate.executeInTransaction((status) -> {
+                    kafkaTemplate.executeInTransaction((operations) -> {
                         final int price = order.getOrderItemList().stream()
                             .mapToInt(i -> i.getQuantity() * i.getProduct().getPrice())
                             .sum();
-                        final int payInPoints = order.getCustomer() != null
-                            && order.isUsePoints() ? Math.max(order.getCustomer().getPoints(), price) : 0;
+                        final int payInPoints = (order.getCustomer() != null && order.isUsePoints())
+                            ? Math.max(order.getCustomer().getPoints(), price)
+                            : 0;
                         final int payInMoney = price - payInPoints;
 
                         order.setPayment(
@@ -64,16 +65,16 @@ public class PaymentService {
                                 .setPoints(payInPoints)
                                 .setOrderId(order.getId())));
 
-                        kafkaTemplate.send(OrderTopics.Transaction.PAYMENT,
+                        operations.send(OrderTopics.Transaction.PAYMENT,
                             order.getId(),
                             order);
 
                         return true;
                     });
                 } catch (Exception e) {
-                    kafkaTemplate.executeInTransaction((status) -> {
+                    kafkaTemplate.executeInTransaction((operations) -> {
                         log.error("PaymentService#processOrder: {}", e.getMessage(), e);
-                        kafkaTemplate.send(OrderTopics.Transaction.ERROR,
+                        operations.send(OrderTopics.Transaction.ERROR,
                             order.getId(),
                             order.setError(e.getMessage()));
                         return true;

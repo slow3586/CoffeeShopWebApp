@@ -6,6 +6,7 @@ import com.slow3586.drinkshop.api.mainservice.entity.OrderItem;
 import com.slow3586.drinkshop.api.mainservice.topic.OrderTopics;
 import com.slow3586.drinkshop.orderservice.repository.OrderItemRepository;
 import com.slow3586.drinkshop.orderservice.repository.OrderRepository;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,10 +29,11 @@ public class OrderListener {
     OrderItemRepository orderItemRepository;
     KafkaTemplate<UUID, Object> kafkaTemplate;
 
-    @KafkaListener(topics = OrderTopics.Request.REQUEST_CREATE, errorHandler = "defaultKafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_CREATE,
+        errorHandler = "defaultKafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     @SendTo(OrderTopics.Request.REQUEST_CREATE_RESPONSE)
-    public UUID createOrder(OrderRequest orderRequest) {
+    public UUID createOrder(@Valid OrderRequest orderRequest) {
         final Order order =
             orderRepository.save(
                 new Order()
@@ -56,7 +58,8 @@ public class OrderListener {
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.Request.REQUEST_CANCEL, errorHandler = "defaultKafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_CANCEL,
+        errorHandler = "defaultKafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     @SendTo(OrderTopics.Request.REQUEST_CANCEL_RESPONSE)
     public UUID cancelOrder(UUID orderId) {
@@ -73,7 +76,8 @@ public class OrderListener {
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.Request.REQUEST_COMPLETED, errorHandler = "defaultKafkaListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Request.REQUEST_COMPLETED,
+        errorHandler = "defaultKafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     @SendTo(OrderTopics.Request.REQUEST_COMPLETED_RESPONSE)
     public UUID completeOrder(UUID orderId) {
@@ -90,19 +94,22 @@ public class OrderListener {
         return order.getId();
     }
 
-    @KafkaListener(topics = OrderTopics.Transaction.PUBLISH, errorHandler = "orderTransactionListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Transaction.PUBLISH,
+        errorHandler = "orderTransactionListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderAwaitingPayment(Order order) {
         orderRepository.save(order.setStatus("AWAITING_PAYMENT"));
     }
 
-    @KafkaListener(topics = OrderTopics.Transaction.PAID, errorHandler = "orderTransactionListenerErrorHandler")
+    @KafkaListener(topics = OrderTopics.Transaction.PAID,
+        errorHandler = "orderTransactionListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderPaid(Order order) {
         orderRepository.save(order.setStatus("PAID"));
     }
 
-    @KafkaListener(topics = {OrderTopics.Transaction.ERROR}, errorHandler = "orderTransactionListenerErrorHandler")
+    @KafkaListener(topics = {OrderTopics.Transaction.ERROR},
+        errorHandler = "loggingKafkaListenerErrorHandler")
     @Transactional(transactionManager = "transactionManager")
     public void processOrderError(Order order) {
         try {

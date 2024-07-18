@@ -3,6 +3,7 @@ spring:
     name: 'orderservice'
   main:
     banner-mode: 'off'
+    web-application-type: servlet
   datasource:
     driver-class-name: org.postgresql.Driver
     url: 'jdbc:postgresql://localhost:5440/postgres'

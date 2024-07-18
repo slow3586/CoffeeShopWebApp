@@ -77,7 +77,7 @@ public class OrderStream {
 
         // PAYMENT TIMEOUT
         orderPaymentTable
-            .suppress(Suppressed.untilTimeLimit(Duration.ofSeconds(60), null))
+            .suppress(Suppressed.untilTimeLimit(Duration.ofMinutes(1), null))
             .leftJoin(paidPaymentTable, Order::setPayment)
             .filter((k, v) -> v.getPayment() == null)
             .mapValues(v -> v.setError("TIMEOUT_PAYMENT"))

@@ -92,12 +92,13 @@ CREATE TABLE shop_shift
 -- changeset lia:12
 CREATE TABLE telegram_publish
 (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    telegram_bot_id TEXT,
-    customer_id     UUID,
-    text            TEXT,
-    status          TEXT,
-    sent_at         TIMESTAMP WITHOUT TIME ZONE
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    telegram_bot_id   TEXT,
+    customer_id       UUID,
+    customer_group_id UUID,
+    text              TEXT,
+    status            TEXT,
+    sent_at           TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- changeset lia:13
